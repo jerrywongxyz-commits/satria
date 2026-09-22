@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Galeri — Satpol PP Kaltara</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --brand:#0a5c8a;--brand-mid:#0e7bb5;--brand-light:#d6edf7;--brand-xlight:#edf6fb;
+      --gold:#c9922a;--text:#12213a;--text-soft:#4a5f78;--border:#dce8f0;
+      --bg:#f0f6fb;--card:#fff;--radius:14px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    a{color:var(--brand);text-decoration:none}
+
+    .topbar{background:linear-gradient(135deg,#08456d,#0a5c8a,#0d76b0);color:#fff;border-bottom:3px solid var(--gold)}
+    .top-inner{max-width:1300px;margin:auto;padding:10px 20px;display:flex;align-items:center;gap:14px}
+    .top-inner img{width:48px;height:48px;object-fit:contain}
+    .site-title b{font-size:15px;font-family:'Lora',serif}
+    .site-title small{font-size:11px;opacity:.8}
+    .back-btn{margin-left:auto;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:6px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:background .2s}
+    .back-btn:hover{background:rgba(255,255,255,.25);color:#fff}
+
+    .hero-strip{background:linear-gradient(90deg,#08375a,#0a5c8a);color:#fff;padding:32px 0}
+    .hero-strip .inner{max-width:1300px;margin:auto;padding:0 20px}
+    .hero-strip h1{font-family:'Lora',serif;font-size:28px;margin-bottom:6px}
+    .hero-strip p{color:rgba(255,255,255,.75);font-size:14px}
+
+    .main{max-width:1300px;margin:0 auto;padding:24px 20px}
+
+    /* filter bar */
+    .filter-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:24px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:0 2px 12px rgba(10,92,138,.06)}
+    .filter-label{font-size:13px;font-weight:700;color:var(--text-soft);margin-right:4px}
+    .filter-btn{padding:7px 16px;border-radius:999px;font-size:13px;font-weight:700;border:1.5px solid var(--border);background:#fff;color:var(--text-soft);cursor:pointer;font-family:inherit;transition:all .18s}
+    .filter-btn:hover,.filter-btn.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+    .search-box{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:6px 14px}
+    .search-box input{border:none;background:none;outline:none;font-size:13px;font-family:inherit;color:var(--text);width:180px}
+
+    /* masonry grid */
+    .gallery-grid{columns:4;column-gap:16px}
+    @media(max-width:1100px){.gallery-grid{columns:3}}
+    @media(max-width:700px){.gallery-grid{columns:2}}
+    @media(max-width:400px){.gallery-grid{columns:1}}
+
+    .gallery-item{break-inside:avoid;margin-bottom:16px;border-radius:var(--radius);overflow:hidden;background:var(--card);border:1px solid var(--border);box-shadow:0 2px 12px rgba(10,92,138,.07);cursor:pointer;transition:transform .22s,box-shadow .22s;position:relative}
+    .gallery-item:hover{transform:translateY(-4px) scale(1.01);box-shadow:0 8px 32px rgba(10,92,138,.18)}
+    .gallery-item img{width:100%;display:block;object-fit:cover}
+    .gallery-item.tall img{aspect-ratio:3/4}
+    .gallery-item.wide img{aspect-ratio:4/3}
+    .gallery-item.sq img{aspect-ratio:1}
+    .gallery-caption{padding:12px 14px}
+    .gallery-caption .tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;margin-bottom:6px}
+    .tag.operasi{background:#edf6fb;color:#0a5c8a}
+    .tag.edukasi{background:#e8f7ee;color:#1a7a3e}
+    .tag.patroli{background:#fdf3e3;color:#c9922a}
+    .tag.linmas{background:#fdecea;color:#c0392b}
+    .tag.sosial{background:#f3e8fd;color:#7b2d8b}
+    .gallery-caption h4{font-size:13px;font-weight:700;line-height:1.35;margin-bottom:3px}
+    .gallery-caption .date{font-size:11px;color:var(--text-soft)}
+    .play-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,.55);display:grid;place-items:center;color:#fff;font-size:20px;pointer-events:none}
+    .gallery-item[data-hidden="true"]{display:none}
+
+    /* lightbox */
+    .lightbox{position:fixed;inset:0;background:rgba(8,37,60,.92);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+    .lightbox.open{opacity:1;pointer-events:all}
+    .lightbox-inner{max-width:860px;width:100%;position:relative}
+    .lightbox img{width:100%;border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,.4)}
+    .lb-close{position:absolute;top:-14px;right:-14px;width:38px;height:38px;border-radius:50%;background:#fff;border:none;cursor:pointer;font-size:20px;display:grid;place-items:center;box-shadow:0 4px 14px rgba(0,0,0,.2);transition:background .2s}
+    .lb-close:hover{background:var(--border)}
+    .lb-caption{background:#fff;border-radius:12px;padding:14px 18px;margin-top:12px}
+    .lb-caption h3{font-size:16px;font-weight:700;margin-bottom:3px}
+    .lb-caption p{font-size:13px;color:var(--text-soft)}
+    .lb-nav{display:flex;justify-content:space-between;margin-top:10px}
+    .lb-nav button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:8px 18px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:background .2s}
+    .lb-nav button:hover{background:rgba(255,255,255,.28)}
+
+    /* stats bar */
+    .stats-bar{display:flex;gap:24px;margin-bottom:20px;font-size:13px;color:var(--text-soft);align-items:center;flex-wrap:wrap}
+    .stats-bar b{color:var(--brand)}
+    .empty{text-align:center;padding:60px 20px;color:var(--text-soft)}
+    .empty .emoji{font-size:48px;margin-bottom:12px}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="top-inner">
+    <img src="https://simpeg.kaltaraprov.go.id/logo/ori_prov_kaltara.png" alt="Logo Kaltara"/>
+    <div class="site-title">
+      <b>Satpol PP Kalimantan Utara</b>
+      <small>Portal Resmi — Galeri Kegiatan</small>
+    </div>
+    <a class="back-btn" href="satpolpp-kaltara.html">← Kembali</a>
+  </div>
+</div>
+
+<div class="hero-strip">
+  <div class="inner">
+    <h1>📸 Galeri Kegiatan</h1>
+    <p>Dokumentasi operasi penertiban, edukasi masyarakat, patroli, dan kegiatan lapangan Satpol PP Kaltara</p>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="filter-bar">
+    <span class="filter-label">Filter:</span>
+    <button class="filter-btn active" data-cat="semua" onclick="filterGallery('semua',this)">Semua</button>
+    <button class="filter-btn" data-cat="operasi" onclick="filterGallery('operasi',this)">🚔 Operasi</button>
+    <button class="filter-btn" data-cat="edukasi" onclick="filterGallery('edukasi',this)">📚 Edukasi</button>
+    <button class="filter-btn" data-cat="patroli" onclick="filterGallery('patroli',this)">🛡️ Patroli</button>
+    <button class="filter-btn" data-cat="linmas" onclick="filterGallery('linmas',this)">🚨 Linmas</button>
+    <button class="filter-btn" data-cat="sosial" onclick="filterGallery('sosial',this)">🤝 Sosial</button>
+    <div class="search-box">
+      <span>🔍</span>
+      <input type="text" placeholder="Cari kegiatan…" oninput="searchGallery(this.value)" id="searchInput"/>
+    </div>
+  </div>
+
+  <div class="stats-bar" id="statsBar">
+    <span>Menampilkan <b id="visibleCount">18</b> dari <b>18</b> foto/video</span>
+  </div>
+
+  <div class="gallery-grid" id="galleryGrid"></div>
+
+  <div class="empty" id="emptyState" style="display:none">
+    <div class="emoji">🔍</div>
+    <b>Tidak ada hasil</b>
+    <p>Coba kata kunci atau kategori lain</p>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <div class="lightbox-inner">
+    <button class="lb-close" onclick="closeLb()">×</button>
+    <img id="lbImg" src="" alt=""/>
+    <div class="lb-caption">
+      <h3 id="lbTitle"></h3>
+      <p id="lbDesc"></p>
+    </div>
+    <div class="lb-nav">
+      <button onclick="lbNav(-1)">← Sebelumnya</button>
+      <button onclick="lbNav(1)">Selanjutnya →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let items = [
+  {id:1,title:'Operasi Penertiban Reklame Ilegal',desc:'Koridor Utama, Tanjung Selor — 10 Sep 2025',cat:'operasi',type:'img',size:'wide',color:'0a5c8a/d6edf7'},
+  {id:2,title:'Sosialisasi Tertib PKL',desc:'Pasar Induk, Tarakan — 08 Sep 2025',cat:'edukasi',type:'img',size:'tall',color:'1a7a3e/e8f7ee'},
+  {id:3,title:'Patroli Gabungan Kawasan Pasar',desc:'Pasar Sentral, Nunukan — 07 Sep 2025',cat:'patroli',type:'img',size:'sq',color:'c9922a/fdf3e3'},
+  {id:4,title:'Simulasi Linmas & Mitigasi Bencana',desc:'Alun-alun Kota, Tanjung Selor — 05 Sep 2025',cat:'linmas',type:'video',size:'wide',color:'c0392b/fdecea'},
+  {id:5,title:'Bakti Sosial Bersama Warga',desc:'Kel. Tanjung Selor Timur — 03 Sep 2025',cat:'sosial',type:'img',size:'tall',color:'7b2d8b/f3e8fd'},
+  {id:6,title:'Penertiban Bangunan Liar',desc:'Jl. Pemuda, Malinau — 01 Sep 2025',cat:'operasi',type:'img',size:'sq',color:'0a5c8a/d6edf7'},
+  {id:7,title:'Edukasi Perda bagi Pelajar',desc:'SMAN 1 Tarakan — 29 Agu 2025',cat:'edukasi',type:'img',size:'wide',color:'1a7a3e/e8f7ee'},
+  {id:8,title:'Patroli Perbatasan Nunukan',desc:'Kawasan Perbatasan, Nunukan — 27 Agu 2025',cat:'patroli',type:'video',size:'tall',color:'c9922a/fdf3e3'},
+  {id:9,title:'Apel Kesiapan Anggota',desc:'Halaman Kantor Satpol PP — 25 Agu 2025',cat:'operasi',type:'img',size:'sq',color:'0a5c8a/d6edf7'},
+  {id:10,title:'Pelatihan Linmas Kelurahan',desc:'Kel. Tanjung Selor Hilir — 22 Agu 2025',cat:'linmas',type:'img',size:'wide',color:'c0392b/fdecea'},
+  {id:11,title:'Sosialisasi Ketentraman Masyarakat',desc:'Kec. Tanjung Palas — 20 Agu 2025',cat:'sosial',type:'img',size:'tall',color:'7b2d8b/f3e8fd'},
+  {id:12,title:'Razia Tempat Hiburan Malam',desc:'Kawasan Hiburan, Tarakan — 18 Agu 2025',cat:'operasi',type:'img',size:'sq',color:'0a5c8a/d6edf7'},
+  {id:13,title:'Edukasi Bahaya Narkoba',desc:'Balai Desa Tanjung Selor — 15 Agu 2025',cat:'edukasi',type:'video',size:'wide',color:'1a7a3e/e8f7ee'},
+  {id:14,title:'Patroli Malam Bersama Polisi',desc:'Pusat Kota Tarakan — 12 Agu 2025',cat:'patroli',type:'img',size:'tall',color:'c9922a/fdf3e3'},
+  {id:15,title:'Pembinaan Anggota Satpol PP',desc:'Kantor Satpol PP Kaltara — 10 Agu 2025',cat:'operasi',type:'img',size:'sq',color:'0a5c8a/d6edf7'},
+  {id:16,title:'Pos Pelayanan Terpadu Warga',desc:'Kec. Sekatak, Bulungan — 08 Agu 2025',cat:'sosial',type:'img',size:'wide',color:'7b2d8b/f3e8fd'},
+  {id:17,title:'Gladi Linmas Tingkat Provinsi',desc:'Lapangan Merdeka, Tanjung Selor — 05 Agu 2025',cat:'linmas',type:'img',size:'tall',color:'c0392b/fdecea'},
+  {id:18,title:'Penindakan PKL Kawasan Terlarang',desc:'Jl. Sudirman, Tarakan — 02 Agu 2025',cat:'operasi',type:'video',size:'sq',color:'0a5c8a/d6edf7'},
+];
+
+let currentLb = 0;
+let visibleItems = [...items];
+
+function imageSrc(item, large=false){
+  if(item.imageUrl || item.mediaUrl) return item.imageUrl || item.mediaUrl;
+  return large
+    ? `https://placehold.co/860x540/${item.color}?text=${encodeURIComponent(item.title)}`
+    : `https://placehold.co/640x480/${item.color}?text=${encodeURIComponent((item.title || 'Media').split(' ')[0])}`;
+}
+
+function normalizeGalleryItems(list){
+  return (list || []).map(item => ({
+    ...item,
+    title: item.title || item.judul || 'Media kegiatan',
+    desc: item.desc || item.ket || '',
+    cat: item.cat || item.kat || 'operasi',
+    type: item.type || 'img',
+    size: item.size || 'wide',
+    color: item.color || '0a5c8a/d6edf7'
+  }));
+}
+
+function renderGallery(list, replaceSource=false){
+  if(Array.isArray(list) && replaceSource) items = normalizeGalleryItems(list);
+  list = normalizeGalleryItems(list || items);
+  const grid = document.getElementById('galleryGrid');
+  const empty = document.getElementById('emptyState');
+  document.getElementById('visibleCount').textContent = list.length;
+  const totals = document.querySelectorAll('#statsBar b');
+  if(totals[1]) totals[1].textContent = items.length;
+  if(!list.length){ grid.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  grid.innerHTML = list.map((item,i)=>`
+    <div class="gallery-item ${item.size}" onclick="openLightbox(${i})" data-id="${item.id}">
+      <img loading="lazy" src="${imageSrc(item)}" alt="${item.title}"/>
+      ${item.type==='video'?'<div class="play-icon">▶</div>':''}
+      <div class="gallery-caption">
+        <span class="tag ${item.cat}">${catLabel(item.cat)}</span>
+        <h4>${item.title}</h4>
+        <div class="date">📅 ${item.desc.split('—')[1]?.trim()||''}</div>
+      </div>
+    </div>
+  `).join('');
+  visibleItems = list;
+}
+
+function catLabel(c){ return {operasi:'🚔 Operasi',edukasi:'📚 Edukasi',patroli:'🛡️ Patroli',linmas:'🚨 Linmas',sosial:'🤝 Sosial'}[c]||c; }
+
+let currentCat = 'semua';
+let currentSearch = '';
+
+function filterGallery(cat, btn){
+  currentCat = cat;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilter();
+}
+function searchGallery(val){ currentSearch = val.toLowerCase(); applyFilter(); }
+function applyFilter(){
+  let list = items;
+  if(currentCat !== 'semua') list = list.filter(i=>i.cat===currentCat);
+  if(currentSearch) list = list.filter(i=>i.title.toLowerCase().includes(currentSearch)||i.desc.toLowerCase().includes(currentSearch));
+  renderGallery(list);
+}
+
+function openLightbox(idx){
+  currentLb = idx;
+  const item = visibleItems[idx];
+  document.getElementById('lbImg').src = imageSrc(item, true);
+  document.getElementById('lbTitle').textContent = item.title;
+  document.getElementById('lbDesc').textContent = item.desc;
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLb(){ document.getElementById('lightbox').classList.remove('open'); document.body.style.overflow=''; }
+function closeLightbox(e){ if(e.target===document.getElementById('lightbox')) closeLb(); }
+function lbNav(dir){
+  currentLb = (currentLb + dir + visibleItems.length) % visibleItems.length;
+  openLightbox(currentLb);
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeLb(); if(e.key==='ArrowLeft') lbNav(-1); if(e.key==='ArrowRight') lbNav(1); });
+
+window.addEventListener('DOMContentLoaded',()=>{ renderGallery(items); });
+</script>
+<script src="backend-client.js"></script>
+</body>
+</html>

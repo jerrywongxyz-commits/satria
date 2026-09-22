@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagram Editor (Fix Delete 100%)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; user-select: none; }
+        body { margin: 0; padding: 0; background-color: #1e1e1e; font-family: 'Segoe UI', sans-serif; height: 100vh; overflow: hidden; color: #ccc; display: flex; }
+
+        /* --- SIDEBAR --- */
+        #data-sidebar { width: 400px; background-color: #252526; border-left: 1px solid #333; display: flex; flex-direction: column; z-index: 200; box-shadow: -2px 0 5px rgba(0,0,0,0.3); }
+        .sidebar-header { padding: 15px; background-color: #333; border-bottom: 1px solid #444; font-weight: bold; color: #fff; text-align: center; }
+        .sidebar-form { padding: 15px; border-bottom: 1px solid #444; background: #2a2a2a; }
+        .sidebar-form input, .sidebar-form select { width: 100%; margin-bottom: 8px; padding: 8px; background: #333; border: 1px solid #555; color: #eee; border-radius: 4px; font-size: 12px; }
+        .sidebar-form button { width: 100%; padding: 8px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 5px; }
+        .sidebar-form button:hover { background: #219150; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+        .table-container { flex: 1; overflow-y: auto; padding: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; color: #ddd; }
+        th, td { border: 1px solid #444; padding: 5px; text-align: center; vertical-align: middle; }
+        td.text-left { text-align: left; }
+        th { background-color: #2d2d2d; position: sticky; top: 0; color: #3498db; }
+        td.editable:hover { background-color: #3a3a3a; color: white; outline: 1px solid #3498db; cursor: pointer; }
+        tr:nth-child(even) { background-color: #2a2a2a; }
+
+        /* --- CANVAS --- */
+        /* Tabindex 0 penting agar div bisa menerima focus keyboard */
+        #canvas-container { flex: 1; position: relative; height: 100%; background-image: radial-gradient(#333 1px, transparent 1px); background-size: 20px 20px; overflow: hidden; cursor: default; outline: none; }
+        #canvas-container.is-panning { cursor: grab; }
+        #canvas-container.is-panning:active { cursor: grabbing; }
+        #zoom-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform-origin: 0 0; will-change: transform; }
+        
+        #connections-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; overflow: visible !important; }
+
+        svg path { fill: none !important; }
+
+        /* GHOST PATH & CONNECTIONS */
+        .connection-group { pointer-events: all; cursor: pointer; }
+        .connection-path-hit { stroke: transparent; stroke-width: 20px; fill: none; }
+        .connection-path-visible { stroke: #666; stroke-width: 2px; fill: none; pointer-events: none; transition: stroke 0.2s; }
+        .connection-group:hover .connection-path-visible { stroke: #3498db; stroke-width: 4px; }
+        .connection-group.selected .connection-path-visible { stroke: #e74c3c; stroke-width: 3px; filter: drop-shadow(0 0 5px rgba(231, 76, 60, 0.8)); }
+        
+        .temp-line { fill: none; stroke: #3498db; stroke-width: 2px; stroke-dasharray: 5; pointer-events: none; }
+
+        /* NODE STYLES */
+        .node { position: absolute; width: 180px; background: #2d2d2d; border: 1px solid #444; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 2; padding: 0; display: flex; flex-direction: column; transition: box-shadow 0.2s; }
+        .node:hover { border-color: #666; box-shadow: 0 6px 20px rgba(0,0,0,0.6); z-index: 10; }
+        .node.is-dragging { box-shadow: 0 10px 25px rgba(0,0,0,0.8); border-color: #3498db; opacity: 0.9; z-index: 100; transition: none; }
+        
+        /* HIGHLIGHT SELEKSI NODE (ORANYE) */
+        .node.selected-node { border: 2px solid #e67e22 !important; box-shadow: 0 0 20px rgba(230, 126, 34, 0.8); z-index: 50; transform: scale(1.02); }
+
+        .node-header { background: #333; padding: 10px; border-radius: 8px 8px 0 0; border-bottom: 1px solid rgba(0,0,0,0.1); font-weight: bold; color: #eee; cursor: grab; text-align: center; min-height: 40px; display: flex; align-items: center; justify-content: center; }
+        .node-header:active { cursor: grabbing; }
+
+        .node[data-jabatan="JPT Pratama"] .node-header { background-color: #d63031; color: white; }
+        .node[data-jabatan="Administrator"] .node-header { background-color: #0984e3; color: white; }
+        .node[data-jabatan="Pengawas"] .node-header { background-color: #00b894; color: white; }
+        .node[data-jabatan="Fungsional PNS"] .node-header { background-color: #636e72; color: white; }
+        .node[data-jabatan="Pelaksana PNS"] .node-header { background-color: #e17055; color: white; }
+        .node[data-jabatan="PPPK Fungsional"] .node-header { background-color: #dfe6e9; color: #2d3436; border-bottom: 1px solid #b2bec3; }
+        .node[data-jabatan="PPPK Pelaksana"] .node-header { background-color: #fdcb6e; color: #2d3436; }
+
+        .node-stats { padding: 0; background-color: #2d2d2d; border-radius: 0 0 8px 8px; border-top: 1px solid #444; overflow: hidden; }
+        .stats-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; font-family: monospace; }
+        .stats-table th { background: #3a3a3a; color: #aaa; font-weight: normal; font-size: 10px; padding: 3px 0; border-bottom: 1px solid #444; border-right: 1px solid #444; text-align: center; }
+        .stats-table td { color: #fff; font-weight: bold; padding: 5px 0; text-align: center; border-right: 1px solid #444; }
+        .stats-table th:last-child, .stats-table td:last-child { border-right: none; }
+        [contenteditable="true"] { outline: 2px solid #3498db; background-color: rgba(255, 255, 255, 0.05); cursor: text !important; user-select: text !important; }
+
+        .port { width: 16px; height: 16px; background-color: #888; border: 2px solid #2d2d2d; border-radius: 50%; position: absolute; cursor: crosshair; z-index: 3; transition: background 0.2s, transform 0.2s; }
+        .port:hover { background-color: #fff; transform: scale(1.3); }
+        .input-port { top: -9px; left: 50%; transform: translateX(-50%); background-color: #2ecc71; }
+        .input-port.left { top: 50%; left: 0; transform: translate(-50%, -50%); }
+        .output-port { bottom: -9px; left: 50%; transform: translateX(-50%); background-color: #e74c3c; }
+
+        body.is-connecting .port[data-type="output"] { opacity: 0.3; pointer-events: none; }
+        body.is-connecting .port[data-type="input"] { z-index: 10; }
+
+        /* --- BOTTOM TOOLBAR (TANPA DELETE BUTTON) --- */
+        .bottom-toolbar { 
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); 
+            background-color: #252526; padding: 8px; border-radius: 8px; 
+            display: flex; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+            z-index: 1000; border: 1px solid #444; 
+        }
+        .icon-btn { 
+            width: 40px; height: 40px; 
+            background-color: #333; border: 1px solid #444; 
+            color: #eee; border-radius: 6px; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center; 
+            font-size: 16px; transition: all 0.2s; 
+        }
+        .icon-btn:hover { background-color: #444; border-color: #666; color: white; transform: translateY(-2px); }
+
+        #notification { position: fixed; top: 70px; right: 20px; background-color: #333; color: white; padding: 10px 20px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000; opacity: 0; transition: opacity 0.3s; pointer-events: none; border-left: 4px solid #3498db; }
+        #notification.show { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div id="notification">Ready</div>
+
+    <input type="file" id="jsonFileInput" accept=".json" style="display: none;" onchange="handleFileSelect(event)">
+
+    <!-- Canvas Container -->
+    <div id="canvas-container" tabindex="0">
+        <div class="bottom-toolbar">
+            <button class="icon-btn" onclick="zoomToFit()" title="Zoom to Fit"><i class="fa-solid fa-expand"></i></button>
+            <button class="icon-btn" onclick="zoomIn()" title="Zoom In"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+            <button class="icon-btn" onclick="zoomOut()" title="Zoom Out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+            <button class="icon-btn" onclick="resetZoom()" title="Reset Zoom"><i class="fa-solid fa-rotate-left"></i></button>
+            <button class="icon-btn" onclick="tidyUpDiagram()" title="Rapikan Diagram"><i class="fa-solid fa-broom"></i></button>
+            <!-- Tombol Hapus SUDAH DIHAPUS -->
+        </div>
+        
+        <div id="zoom-layer">
+            <svg id="connections-layer"></svg>
+            <!-- Nodes here -->
+        </div>
+    </div>
+
+    <div id="data-sidebar">
+        <div class="sidebar-header">Editor Data</div>
+        <div class="sidebar-form">
+            <h4>Tambah Node Baru</h4>
+            <input type="text" id="input-title" list="master-jabatan-list" placeholder="Cari Jabatan (Master Data)..." autocomplete="off">
+            <datalist id="master-jabatan-list"></datalist>
+
+            <select id="input-jabatan">
+                <option value="Pelaksana PNS">-- Pilih Tipe --</option>
+                <option value="JPT Pratama">🔴 JPT Pratama</option>
+                <option value="Administrator">🔵 Administrator</option>
+                <option value="Pengawas">🟢 Pengawas</option>
+                <option value="Fungsional PNS">🔘 Fungsional PNS</option>
+                <option value="Pelaksana PNS">🟠 Pelaksana PNS</option>
+                <option value="PPPK Fungsional">⚪ PPPK Fungsional</option>
+                <option value="PPPK Pelaksana">🟡 PPPK Pelaksana</option>
+            </select>
+            <div class="form-grid">
+                <input type="number" id="input-kelas" placeholder="Kelas (Auto)" min="1" max="17">
+                <input type="number" id="input-orang" placeholder="B (Isi)" min="0">
+                <input type="number" id="input-kebutuhan" placeholder="K (Butuh)" min="0">
+            </div>
+            <select id="input-parent"><option value="">-- Induk --</option></select>
+            <button id="btnAddNode" onclick="addNodeFromSidebar()">+ Tambah Data</button>
+        </div>
+        <div class="table-container">
+            <table id="diagram-table">
+                <thead><tr><th>ID</th><th>Nama</th><th>Jab</th><th>Kl</th><th>Ex</th><th>Req</th><th>Induk</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // --- MASTER DATA ---
+        let masterDataJabatan = [
+            { nama: "Analis Kebijakan Ahli Muda", kelas: 9 },
+            { nama: "Analis Kebijakan Ahli Pertama", kelas: 8 },
+            { nama: "Perencana Ahli Muda", kelas: 9 },
+            { nama: "Pranata Komputer Ahli Muda", kelas: 9 },
+            { nama: "Pranata Komputer Terampil", kelas: 6 },
+            { nama: "Pengelola Keuangan", kelas: 6 },
+            { nama: "Bendahara Pengeluaran", kelas: 7 },
+            { nama: "Pengadministrasi Umum", kelas: 5 }
+        ];
+
+        const initialNodes = [
+            { id: "node1", title: "Direktur Utama", jabatan: "JPT Pratama", kelas: 15, orang: 1, butuh: 1, x: 400, y: 50 },
+            { id: "node2", title: "Manajer Teknis", jabatan: "Administrator", kelas: 12, orang: 1, butuh: 1, x: 200, y: 250 },
+            { id: "node3", title: "Marketing", jabatan: "Administrator", kelas: 12, orang: 1, butuh: 2, x: 600, y: 250 }
+        ];
+        
+        const notification = document.getElementById('notification');
+        const svgLayer = document.getElementById('connections-layer');
+        const container = document.getElementById('canvas-container');
+        const zoomLayer = document.getElementById('zoom-layer'); 
+        const tableBody = document.querySelector('#diagram-table tbody');
+        const parentSelect = document.getElementById('input-parent');
+        const jabatanSelect = document.getElementById('input-jabatan');
+        
+        // --- VARIABLES ---
+        let connections = [], nodeCounter = 0, connectionCounter = 0;
+        let zoomLevel = 1, panX = 0, panY = 0;
+        let isPanning = false, panStart = {};
+        let isDraggingNode = false, dragNode = null, dragOffset = {};
+        
+        let isDraggingPort = false, startPort = null, tempPath = null;
+        let potentialTargetPort = null;
+        
+        // --- SELECTION STATES (GLOBAL) ---
+        let selectedPathId = null; 
+        let selectedNodeId = null; // Menambahkan state ini
+        
+        let animationFrameId = null;
+
+        function showNotification(msg) { notification.innerText = msg; notification.classList.add('show'); setTimeout(()=>notification.classList.remove('show'), 3000); }
+
+        function initMasterData() {
+            const dataList = document.getElementById('master-jabatan-list');
+            masterDataJabatan.forEach(item => { const o = document.createElement('option'); o.value=item.nama; dataList.appendChild(o); });
+            document.getElementById('input-title').addEventListener('input', function() {
+                const val = this.value; const found = masterDataJabatan.find(item => item.nama === val);
+                if(found) { document.getElementById('input-kelas').value = found.kelas; if(val.includes("Ahli")||val.includes("Terampil")) jabatanSelect.value = "Fungsional PNS"; else if(val.includes("Pengadministrasi")) jabatanSelect.value = "Pelaksana PNS"; }
+            });
+        }
+
+        // --- TRANSFORM & ZOOM ---
+        function updateTransform() { 
+            zoomLayer.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`; 
+        }
+        function getCenter(el) { const r=el.getBoundingClientRect(); const c=container.getBoundingClientRect(); return { x:(r.left-c.left-panX)/zoomLevel+r.width/2/zoomLevel, y:(r.top-c.top-panY)/zoomLevel+r.height/2/zoomLevel }; }
+        
+        window.zoomIn = () => { if(zoomLevel<3) { zoomLevel+=0.1; updateTransform(); }};
+        window.zoomOut = () => { if(zoomLevel>0.2) { zoomLevel-=0.1; updateTransform(); }};
+        window.resetZoom = () => { zoomLevel = 1; panX = 0; panY = 0; updateTransform(); };
+        window.zoomToFit = () => {
+            const nodes = document.querySelectorAll('.node');
+            if (nodes.length === 0) return;
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            nodes.forEach(node => {
+                const x = parseFloat(node.style.left); const y = parseFloat(node.style.top);
+                const w = node.offsetWidth; const h = node.offsetHeight;
+                if (x < minX) minX = x; if (y < minY) minY = y;
+                if (x + w > maxX) maxX = x + w; if (y + h > maxY) maxY = y + h;
+            });
+            const padding = 50; const graphW = maxX - minX + padding * 2; const graphH = maxY - minY + padding * 2;
+            const containerW = container.offsetWidth; const containerH = container.offsetHeight;
+            let newZoom = Math.min(containerW / graphW, containerH / graphH);
+            if (newZoom > 1) newZoom = 1; if (newZoom < 0.2) newZoom = 0.2;
+            zoomLevel = newZoom;
+            panX = (containerW / 2) - ((minX - padding + graphW / 2) * zoomLevel);
+            panY = (containerH / 2) - ((minY - padding + graphH / 2) * zoomLevel);
+            updateTransform();
+        };
+
+        container.addEventListener('wheel', e => { e.preventDefault(); e.deltaY<0?zoomIn():zoomOut(); }, {passive:false});
+        
+        // --- SELECTION LOGIC ---
+        function selectConnection(id) {
+            unselectNode(); // Reset node selection
+            if(selectedPathId) document.getElementById(selectedPathId)?.classList.remove('selected');
+            selectedPathId = id; 
+            document.getElementById(id)?.classList.add('selected');
+            showNotification("Relasi Terpilih (Tekan Delete untuk hapus)");
+        }
+
+        function unselectConnection() {
+            if(selectedPathId) document.getElementById(selectedPathId)?.classList.remove('selected'); 
+            selectedPathId = null;
+        }
+
+        function selectNode(id) {
+            unselectConnection(); // Reset line selection
+            if(selectedNodeId) document.getElementById(selectedNodeId)?.classList.remove('selected-node');
+            selectedNodeId = id;
+            document.getElementById(id)?.classList.add('selected-node');
+            showNotification("Node Terpilih (Tekan Delete untuk hapus)");
+        }
+
+        function unselectNode() {
+            if(selectedNodeId) document.getElementById(selectedNodeId)?.classList.remove('selected-node');
+            selectedNodeId = null;
+        }
+
+        // --- GLOBAL DELETE LOGIC (NO CONFIRM) ---
+        function deleteNode(id) {
+            const node = document.getElementById(id);
+            if(!node) return;
+
+            // 1. Hapus Koneksi Terkait di Array & DOM
+            // Menggunakan c.groupEl atau c.pathEl agar kompatibel dengan berbagai versi
+            const toRemove = connections.filter(c => c.from === id || c.to === id);
+            toRemove.forEach(c => {
+                if(c.groupEl) c.groupEl.remove();
+                if(c.pathEl) c.pathEl.remove();
+                if(c.targetEl) c.targetEl.classList.remove('occupied');
+            });
+            connections = connections.filter(c => c.from !== id && c.to !== id);
+
+            // 2. Hapus Element Node
+            node.remove();
+            selectedNodeId = null;
+            updateTableAndForm();
+            showNotification("Node Dihapus");
+        }
+
+        function deleteConnection(id) {
+            const idx = connections.findIndex(c => c.id === id);
+            if(idx !== -1) {
+                const conn = connections[idx];
+                if(conn.groupEl) conn.groupEl.remove();
+                if(conn.pathEl) conn.pathEl.remove();
+                if(conn.targetEl) conn.targetEl.classList.remove('occupied');
+                connections.splice(idx, 1);
+                updateTableAndForm();
+                showNotification("Relasi Dihapus");
+            }
+            selectedPathId = null;
+        }
+
+        // --- MOUSE EVENTS GLOBAL ---
+        container.addEventListener('mousedown', e => { 
+            if(e.button===1) { // Middle click pan
+                isPanning=true; panStart={x:e.clientX-panX, y:e.clientY-panY}; 
+                container.classList.add('is-panning'); return;
+            } 
+            
+            const clickedNode = e.target.closest('.node');
+            const clickedGroup = e.target.closest('.connection-group'); 
+            const clickedPort = e.target.closest('.port');
+
+            // FOKUSKAN CONTAINER AGAR KEYBOARD SHORTCUT JALAN
+            container.focus();
+
+            // Klik di Canvas Kosong -> Deselect Semua
+            if (!clickedNode && !clickedGroup && !clickedPort) {
+                unselectConnection();
+                unselectNode();
+            }
+        });
+
+        window.addEventListener('mouseup', () => { 
+            isPanning=false; container.classList.remove('is-panning'); isDraggingNode=false; 
+            if(isDraggingPort){ 
+                isDraggingPort=false; document.body.classList.remove('is-connecting');
+                if (potentialTargetPort && startPort && startPort.dataset.node !== potentialTargetPort.dataset.node) createConnection(startPort, potentialTargetPort);
+                if(tempPath) { tempPath.remove(); tempPath = null; }
+                if(potentialTargetPort) { potentialTargetPort.classList.remove('magnet-active'); potentialTargetPort = null; }
+            } 
+        });
+
+        window.addEventListener('mousemove', e => {
+            if(animationFrameId) cancelAnimationFrame(animationFrameId);
+            animationFrameId = requestAnimationFrame(() => {
+                if(isPanning) { panX=e.clientX-panStart.x; panY=e.clientY-panStart.y; updateTransform(); return; }
+                const rect = container.getBoundingClientRect();
+                const mx = (e.clientX-rect.left-panX)/zoomLevel;
+                const my = (e.clientY-rect.top-panY)/zoomLevel;
+                
+                if(isDraggingNode && dragNode) {
+                    dragNode.style.left = (e.clientX-rect.left-dragOffset.x-panX)/zoomLevel + 'px';
+                    dragNode.style.top = (e.clientY-rect.top-dragOffset.y-panY)/zoomLevel + 'px';
+                    updateConn(dragNode.id);
+                }
+                
+                if(isDraggingPort && tempPath) {
+                    const s = getCenter(startPort);
+                    let targetX = mx; let targetY = my;
+                    let closestPort = null; let minDst = 50;
+                    const inputs = document.querySelectorAll('.port[data-type="input"]');
+                    inputs.forEach(p => {
+                        if (p.dataset.node === startPort.dataset.node) return;
+                        const center = getCenter(p);
+                        const dist = Math.hypot(center.x - mx, center.y - my);
+                        if (dist < minDst) { minDst = dist; closestPort = p; }
+                    });
+                    if (potentialTargetPort && potentialTargetPort !== closestPort) potentialTargetPort.classList.remove('magnet-active');
+                    if (closestPort) {
+                        potentialTargetPort = closestPort; potentialTargetPort.classList.add('magnet-active');
+                        const snap = getCenter(closestPort); targetX = snap.x; targetY = snap.y;
+                    } else { potentialTargetPort = null; }
+                    const midY = (s.y+targetY)/2;
+                    tempPath.setAttribute('d', `M ${s.x} ${s.y} L ${s.x} ${midY} L ${targetX} ${midY} L ${targetX} ${targetY}`);
+                }
+            });
+        });
+
+        // --- KEYBOARD LISTENER (DELETE) ---
+        window.addEventListener('keydown', (e) => {
+            // Abaikan jika sedang ngetik
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.isContentEditable) return;
+            
+            if(e.key === 'Delete' || e.key === 'Backspace') {
+                e.preventDefault(); 
+                if(selectedNodeId) {
+                    deleteNode(selectedNodeId);
+                } else if (selectedPathId) {
+                    deleteConnection(selectedPathId);
+                }
+            }
+        });
+
+        function isStruct(j) { return ["JPT Pratama","Administrator","Pengawas"].includes(j); }
+        function getRank(j) { if(j.includes("JPT"))return 4; if(j.includes("Admin"))return 3; if(j.includes("Pengawas"))return 2; return 1; }
+        
+        function updateNodePorts(node) {
+            node.querySelectorAll('.port').forEach(p=>p.remove());
+            const id=node.id, jab=node.dataset.jabatan, isS=isStruct(jab);
+            const ip=document.createElement('div'); ip.className=`port input-port ${!isS?'left':''}`; 
+            ip.dataset.type='input'; ip.dataset.node=id; node.appendChild(ip);
+            if(isS) { const op=document.createElement('div'); op.className='port output-port'; op.dataset.type='output'; op.dataset.node=id; node.appendChild(op); }
+
+            node.querySelectorAll('.port').forEach(p => {
+                p.addEventListener('mousedown', (e) => {
+                    if(e.button !== 0) return; e.stopPropagation();
+                    if(p.dataset.type === 'output') {
+                        isDraggingPort = true; startPort = p; document.body.classList.add('is-connecting');
+                        const s = getCenter(p);
+                        tempPath = document.createElementNS("http://www.w3.org/2000/svg","path");
+                        tempPath.className = 'temp-line'; tempPath.setAttribute("d", `M ${s.x} ${s.y} L ${s.x} ${s.y}`);
+                        svgLayer.appendChild(tempPath);
+                    }
+                });
+            });
+        }
+
+        function addNode(customTitle=null, customX=null, customY=null, customJabatan='Pelaksana PNS', customKelas='0', customOrang='0', customKebutuhan='0') {
+            nodeCounter++;
+            const id = 'node' + nodeCounter;
+            const node = document.createElement('div'); node.className = 'node'; node.id = id;
+            node.dataset.jabatan = customJabatan; node.dataset.kelas = customKelas;
+            node.dataset.orang = customOrang; node.dataset.kebutuhan = customKebutuhan;
+            node.style.left = (customX!==null?customX:(100+Math.random()*200)) + 'px';
+            node.style.top = (customY!==null?customY:(100+Math.random()*200)) + 'px';
+            node.innerHTML = `<div class="node-header">${customTitle || `Node ${nodeCounter}`}</div><div class="node-stats"></div>`;
+
+            // EVENT: SELEKSI NODE SAAT KLIK (DUPLIKASI LOGIKA PATH)
+            node.addEventListener('mousedown', (e) => {
+                // Jangan seleksi jika klik port atau sedang edit teks
+                if(e.target.classList.contains('port') || e.target.isContentEditable) return;
+                
+                // Stop propagasi agar tidak tembus ke canvas (yang bikin deselect)
+                e.stopPropagation();
+                container.focus(); // Pastikan fokus ada di canvas
+                
+                // Panggil fungsi seleksi node
+                selectNode(id);
+            });
+
+            zoomLayer.appendChild(node);
+            updateNodePorts(node); updateNodeStats(node); setupNodeEvents(node); updateTableAndForm();
+            return id;
+        }
+
+        function updateNodeStats(node) {
+            if (typeof node === 'string') node = document.getElementById(node); if (!node) return;
+            const k = node.dataset.kelas||'0', o = parseInt(node.dataset.orang||'0'), b = parseInt(node.dataset.kebutuhan||'0');
+            const s = o-b; const col = s<0?'#e74c3c':(s>0?'#2ecc71':'#ccc');
+            const statsDiv = node.querySelector('.node-stats');
+            if (statsDiv) statsDiv.innerHTML = `<table class="stats-table"><thead><tr><th>Kls</th><th>B</th><th>K</th><th>+/-</th></tr></thead><tbody><tr><td>${k}</td><td>${o}</td><td>${b}</td><td style="color:${col}">${s>0?'+':''}${s}</td></tr></tbody></table>`;
+        }
+
+        function createConnection(src, tgt) {
+            const sid=src.dataset.node, tid=tgt.dataset.node;
+            if(connections.some(c=>c.from===sid && c.to===tid)) return;
+            if(connections.some(c => c.targetEl === tgt)) return; // Single parent
+            
+            const cid = 'conn_'+(++connectionCounter);
+            
+            // GHOST PATH LOGIC
+            const group = document.createElementNS("http://www.w3.org/2000/svg","g"); 
+            group.setAttribute("class", "connection-group"); 
+            group.setAttribute("id", cid);
+            
+            const hitPath = document.createElementNS("http://www.w3.org/2000/svg","path"); 
+            hitPath.setAttribute("class", "connection-path-hit");
+            
+            const visiblePath = document.createElementNS("http://www.w3.org/2000/svg","path"); 
+            visiblePath.setAttribute("class", "connection-path-visible");
+            
+            group.appendChild(hitPath); group.appendChild(visiblePath);
+            
+            // EVENT: SELEKSI PATH (Sudah ada, Node meniru ini)
+            group.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                container.focus(); // Fokus canvas
+                selectConnection(cid);
+            });
+            
+            svgLayer.appendChild(group);
+            connections.push({ id: cid, from: sid, to: tid, sourceEl: src, targetEl: tgt, groupEl: group, hitPath, visiblePath });
+            tgt.classList.add('occupied');
+            updateConn(sid); updateTableAndForm();
+        }
+
+        function updateConn(nid) {
+            connections.forEach(c => {
+                if(c.from===nid || c.to===nid) {
+                    const s=getCenter(c.sourceEl), e=getCenter(c.targetEl);
+                    let d = '';
+                    if(c.targetEl.classList.contains('left')) { 
+                        const bx=e.x-20, dy=s.y+15; d = `M ${s.x} ${s.y} L ${s.x} ${dy} L ${bx} ${dy} L ${bx} ${e.y} L ${e.x} ${e.y}`; 
+                    } else { 
+                        const my=(s.y+e.y)/2; d = `M ${s.x} ${s.y} L ${s.x} ${my} L ${e.x} ${my} L ${e.x} ${e.y}`; 
+                    }
+                    c.hitPath.setAttribute('d', d); c.visiblePath.setAttribute('d', d);
+                }
+            });
+        }
+
+        function setupNodeEvents(node) {
+            const h = node.querySelector('.node-header');
+            
+            // DRAG (Hanya di header)
+            h.onmousedown = e => { 
+                if(e.button !== 0) return; 
+                isDraggingNode = true; dragNode = node; 
+                const r = node.getBoundingClientRect(); dragOffset = {x:e.clientX-r.left, y:e.clientY-r.top}; 
+            };
+            
+            h.ondblclick = e => { 
+                e.target.contentEditable=true; e.target.focus(); e.target.onblur=()=>{ e.target.contentEditable=false; updateTableAndForm(); }; 
+            };
+        }
+
+        function updateTableAndForm() {
+            tableBody.innerHTML=''; const ps=parentSelect; const cur=ps.value; ps.innerHTML='<option value="">-- Induk --</option>';
+            document.querySelectorAll('.node').forEach(n=>{
+                const id=n.id, txt=n.querySelector('.node-header').innerText;
+                const op=document.createElement('option'); op.value=id; op.innerText=txt; ps.appendChild(op);
+                const pConn=connections.find(c=>c.to===id), pTxt=pConn?document.getElementById(pConn.from).querySelector('.node-header').innerText:'-';
+                const tr=document.createElement('tr');
+                tr.innerHTML=`<td>${id}</td><td class="text-left">${txt}</td><td>${n.dataset.jabatan}</td><td>${n.dataset.kelas}</td><td>${n.dataset.orang}</td><td>${n.dataset.kebutuhan}</td><td class="text-left" style="color:${pTxt==='-'?'#777':'#3498db'}">${pTxt}</td>`;
+                tableBody.appendChild(tr);
+            });
+            ps.value=cur;
+        }
+
+        function addNodeFromSidebar() {
+            const t = document.getElementById('input-title').value||'Baru', j = jabatanSelect.value, k = document.getElementById('input-kelas').value||'1';
+            const o = document.getElementById('input-orang').value||'0', b = document.getElementById('input-kebutuhan').value||'0', p = parentSelect.value;
+            const nid = addNode(t, null, null, j, k, o, b);
+            if(p) setTimeout(() => {
+                const pEl = document.querySelector(`.port[data-node="${p}"][data-type="output"]`);
+                const cEl = document.querySelector(`.port[data-node="${nid}"][data-type="input"]`);
+                if(pEl && cEl) createConnection(pEl, cEl);
+            }, 100);
+            document.getElementById('input-title').value = '';
+        }
+
+        function tidyUpDiagram() {
+            const nodes = Array.from(document.querySelectorAll('.node'));
+            const map = {}; nodes.forEach(n => map[n.id] = {el: n, isStruct: isStruct(n.dataset.jabatan), parents: [], structChildren: [], staffChildren: [], w: 180, h: 100, x:0, y:0});
+            connections.forEach(c => { if(map[c.from] && map[c.to]) { map[c.to].parents.push(c.from); if(map[c.to].isStruct) map[c.from].structChildren.push(c.to); else map[c.from].staffChildren.push(c.to); } });
+
+            const roots = Object.keys(map).filter(id => map[id].isStruct && map[id].parents.length === 0);
+            let levelY = 50;
+            const layoutStaff = (parentId, startY) => {
+                const parent = map[parentId]; let currentY = startY;
+                parent.staffChildren.forEach(childId => {
+                    const child = map[childId]; child.x = parent.x + 40; child.y = currentY;
+                    child.el.style.left = child.x + 'px'; child.el.style.top = child.y + 'px';
+                    updateConn(childId); currentY += 120;
+                });
+                return currentY;
+            };
+            const processLevel = (ids, startX) => {
+                if(!ids.length) return;
+                let currentX = startX; let nextLevelIds = [];
+                ids.forEach(id => {
+                    const node = map[id]; node.x = currentX; node.y = levelY;
+                    node.el.style.left = node.x + 'px'; node.el.style.top = node.y + 'px';
+                    updateConn(id);
+                    layoutStaff(id, node.y + 120);
+                    currentX += 250; nextLevelIds.push(...node.structChildren);
+                });
+                levelY += 250; processLevel(nextLevelIds, 50);
+            };
+            processLevel(roots, 50); window.zoomToFit();
+        }
+
+        window.onload = () => {
+            initMasterData();
+            initialNodes.forEach(n => addNode(n.title, n.x, n.y, n.jabatan, n.kelas, n.orang, n.butuh));
+            setTimeout(() => {
+                const p1 = document.querySelector(`.port[data-node="node1"][data-type="output"]`);
+                const p2 = document.querySelector(`.port[data-node="node2"][data-type="input"]`);
+                const p3 = document.querySelector(`.port[data-node="node3"][data-type="input"]`);
+                if(p1&&p2) createConnection(p1, p2); if(p1&&p3) createConnection(p1, p3);
+            }, 100);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Admin - TRC Satpol PP Kaltara</title>
+
+    <!-- AdminLTE CSS -->
+    <link rel="stylesheet" href="./css/adminlte.css" />
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        /* --- Gaya Custom untuk Menyerupai Situs Satpol PP Kaltara --- */
+
+        /* Header Top Bar */
+        .main-header {
+            background: #006699 !important;
+            color: white;
+        }
+
+        .navbar-nav .nav-link,
+        .navbar-brand {
+            color: #e0f0ff !important;
+            font-weight: 500;
+        }
+
+        .navbar-nav .nav-link:hover,
+        .navbar-brand:hover {
+            color: #ffffff !important;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .btn-primary {
+            background-color: #006699 !important;
+            border-color: #006699 !important;
+            border-radius: 8px;
+        }
+
+        .btn-primary:hover {
+            background-color: #005580 !important;
+            border-color: #005580 !important;
+        }
+
+        /* Background Konten */
+        .app-content {
+            background: linear-gradient(135deg, #006699 0%, #1B9966 100%) !important;
+            padding: 20px;
+        }
+
+        /* Card & Box */
+        .card {
+            background: white !important;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* KPI Card */
+        .kpi-card {
+            background: #1B9966 !important;
+            color: white;
+            text-align: center;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .kpi-card h6 {
+            color: #e0f0ff;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .kpi-card h2 {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        /* Tab & Nav */
+        .nav-tabs .nav-link {
+            color: #28739E;
+            font-weight: 500;
+        }
+
+        .nav-tabs .nav-link.active {
+            background: #1B9966 !important;
+            color: white !important;
+            border: none;
+        }
+
+        /* Chart Canvas */
+        canvas {
+            max-height: 250px;
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Peta Container */
+        #map-rawan {
+            height: 350px;
+            background: #f1f1f1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .app-sidebar {
+            background: #f8f9fa !important;
+            border-right: 1px solid #dee2e6;
+        }
+
+        .sidebar-menu .nav-link {
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .sidebar-menu .nav-link:hover {
+            background: #e9ecef;
+        }
+
+        .sidebar-menu .nav-link.active {
+            background: #006699;
+            color: white;
+        }
+
+        /* Footer */
+        .app-footer {
+            background: #006699;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .app-footer a {
+            color: #e0f0ff;
+            text-decoration: underline;
+        }
+
+        /* Font Global */
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+    </style>
+</head>
+<body class="layout-fixed sidebar-expand-lg sidebar-mini">
+    <div class="wrapper">
+
+        <!-- Header -->
+        <nav class="main-header navbar navbar-expand bg-body-secondary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTIgMkMxMiAxLjQgMTEuNiAwIDEwIDBIOEM2LjYgMCA2IDEuNCA2IDJ2MjBoMTJWMnoiIGZpbGw9IiMwMDY2OTkiLz48cGF0aCBkPSJNMjAgMGMtMS4xIDAtMiA0LjgtMiA4czAuOSA4IDItOHoiIGZpbGw9IiMwMDY2OTkiLz48cGF0aCBkPSJNMTIgMmMtMS4xIDAtMiA0LjgtMiA4czAuOSA4IDItOHoiIGZpbGw9IiMwMDY2OTkiLz48cGF0aCBkPSJNNSAyMEMzLjkgMjAgMyAyMS44IDMgMjNDMyAyNC44IDUgMjQgNiAyNEgxOGMxIDAgMy0wLjIgMy0zM2MtMSAwLTIgMC0zIDBIMmMxIDAgMyAwIDMgMCIgZmlsbD0iIzAwNjY5OSIvPjwvc3ZnPg==" alt="Logo" style="height: 30px; margin-right: 10px;" />
+                    <span>Satuan Polisi Pamong Praja Provinsi Kalimantan Utara</span>
+                </a>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#">Kontras Tinggi</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">A+</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">A-</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Sidebar -->
+        <aside class="main-sidebar sidebar-dark-primary elevation-4">
+            <a href="#" class="brand-link">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTIgMkMxMiAxLjQgMTEuNiAwIDEwIDBIOEM2LjYgMCA2IDEuNCA2IDJ2MjBoMTJWMnoiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNMjAgMGMtMS4xIDAtMiA0LjgtMiA4czAuOSA4IDItOHoiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNMTIgMmMtMS4xIDAtMiA0LjgtMiA4czAuOSA4IDItOHoiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNNSAyMEMzLjkgMjAgMyAyMS44IDMgMjNDMyAyNC44IDUgMjQgNiAyNEgxOGMxIDAgMy0wLjIgMy0zM2MtMSAwLTIgMC0zIDBIMmMxIDAgMyAwIDMgMCIgZmlsbD0iI2ZmZmZmZiIvPjwvc3ZnPg==" alt="AdminLTE Logo" class="brand-image opacity-75 shadow" />
+                <span class="brand-text fw-light">TRC Dashboard</span>
+            </a>
+            <div class="sidebar">
+                <nav class="mt-2">
+                    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                        <li class="nav-item menu-open">
+                            <a href="#" class="nav-link active">
+                                <i class="nav-icon bi bi-speedometer"></i>
+                                <p>Dashboard</p>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="content-wrapper">
+            <!-- App Content Header -->
+            <div class="app-content-header">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <h3 class="mb-0">Dashboard Administrasi</h3>
+                        </div>
+                        <div class="col-sm-6">
+                            <ol class="breadcrumb float-sm-end">
+                                <li class="breadcrumb-item"><a href="#">Home</a></li>
+                                <li class="breadcrumb-item active">Dashboard</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- App Content -->
+            <div class="app-content">
+                <div class="container-fluid">
+
+                    <!-- KPI Ringkas -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="kpi-card">
+                                <h6>Total Aduan Masuk</h6>
+                                <h2 id="kpi-total">453</h2>
+                                <small>Aduan Masuk (Periode Terpilih)</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="kpi-card">
+                                <h6>Rata-rata Waktu Respons</h6>
+                                <h2 id="kpi-respons">15 Menit</h2>
+                                <small>Target: 20 Menit</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="kpi-card">
+                                <h6>Persentase Aduan Selesai</h6>
+                                <h2 id="kpi-selesai">92%</h2>
+                                <small>8% Masih Proses</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="kpi-card">
+                                <h6>Aduan per Urusan</h6>
+                                <div class="d-flex justify-content-between">
+                                    <div><strong>Satpol PP:</strong> 280</div>
+                                    <div><strong>Damkar:</strong> 173</div>
+                                </div>
+                                <small>Total: 453 Aduan</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tren & Breakdown -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Tren Waktu Laporan</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="chart-tren"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Breakdown Kategori</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="nav nav-tabs" id="breakdownTabs" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" id="pelanggaran-tab" data-bs-toggle="tab" data-bs-target="#pelanggaran-pane" type="button" role="tab" aria-controls="pelanggaran-pane" aria-selected="true">Jenis Pelanggaran</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="perda-tab" data-bs-toggle="tab" data-bs-target="#perda-pane" type="button" role="tab" aria-controls="perda-pane" aria-selected="false">Perda Teratas</button>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content pt-3" id="breakdownTabsContent">
+                                        <div class="tab-pane fade show active" id="pelanggaran-pane" role="tabpanel" aria-labelledby="pelanggaran-tab">
+                                            <canvas id="chart-pelanggaran"></canvas>
+                                        </div>
+                                        <div class="tab-pane fade" id="perda-pane" role="tabpanel" aria-labelledby="perda-tab">
+                                            <canvas id="chart-perda"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Peta & Kinerja TRC & Tabel -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Peta Rawan Gangguan</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="map-rawan">[Area Peta Interaktif]</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Kinerja TRC</h5>
+                                </div>
+                                <div class="card-body">
+                                    <select id="filter-kinerja-urusan" class="form-select form-select-sm mb-3">
+                                        <option value="all" selected>Semua Urusan</option>
+                                        <option value="satpolpp">Satpol PP</option>
+                                        <option value="damkar">Damkar</option>
+                                    </select>
+                                    <p class="small text-muted mb-1">Filter Wilayah: (Dari Sidebar)</p>
+                                    <canvas id="chart-kinerja-trc"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Tabel Detail Aduan</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div style="max-height: 450px; overflow-y: auto;">
+                                        <table class="table table-sm table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Jenis</th>
+                                                    <th>Waktu</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr><td>TKT-101</td><td>Lalin</td><td>10:00</td></tr>
+                                                <tr><td>TKT-102</td><td>Damkar</td><td>09:45</td></tr>
+                                                <tr><td>TKT-103</td><td>Satpol</td><td>09:30</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <strong>Copyright &copy; 2025 <a href="https://adminlte.io">TRC Satpol PP Kaltara</a>.</strong> All rights reserved.
+        </footer>
+
+    </div>
+
+    <!-- AdminLTE JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="./js/adminlte.js"></script>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // Inisialisasi Peta
+        const map = L.map('map-rawan').setView([1.5, 116.0], 7);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Inisialisasi Chart
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // --- 2. Chart Tren Waktu ---
+            const ctxTren = document.getElementById('chart-tren').getContext('2d');
+            new Chart(ctxTren, {
+                type: 'line',
+                data: {
+                    labels: ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10'],
+                    datasets: [
+                        {
+                            label: 'Satpol PP (Aduan)',
+                            data: [15, 12, 18, 10, 20, 14, 16, 11, 19, 13],
+                            borderColor: '#0d6efd',
+                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Damkar (Aduan)',
+                            data: [5, 8, 3, 7, 2, 6, 9, 4, 1, 10],
+                            borderColor: '#dc3545',
+                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // --- 3a. Jenis Pelanggaran ---
+            const ctxPelanggaran = document.getElementById('chart-pelanggaran').getContext('2d');
+            new Chart(ctxPelanggaran, {
+                type: 'bar',
+                data: {
+                    labels: ['PKL', 'Lalin', 'Sampah', 'Izin Bangunan', 'Hiburan Malam'],
+                    datasets: [{
+                        label: 'Jumlah Aduan',
+                        data: [110, 85, 60, 45, 30],
+                        backgroundColor: '#ffc107'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    scales: { x: { beginAtZero: true } }
+                }
+            });
+
+            // --- 3b. Perda Teratas ---
+            const ctxPerda = document.getElementById('chart-perda').getContext('2d');
+            new Chart(ctxPerda, {
+                type: 'bar',
+                data: {
+                    labels: ['No. 7/2014 (Ketertiban Umum)', 'No. 3/2012 (Sampah)', 'No. 11/2018 (Bangunan)'],
+                    datasets: [{
+                        label: 'Jumlah Kasus',
+                        data: [150, 100, 75],
+                        backgroundColor: '#198754'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    scales: { x: { beginAtZero: true } }
+                }
+            });
+
+            // --- 5. Kinerja TRC ---
+            const ctxKinerjaTRC = document.getElementById('chart-kinerja-trc').getContext('2d');
+            const dataResponseTime = {
+                all: [15, 12, 18, 10, 14],
+                satpolpp: [14, 11, 17, 12, 13],
+                damkar: [16, 13, 19, 8, 15]
+            };
+            const labelsTRC = ['TRC.1', 'TRC.2', 'TRC.3', 'TRC.4', 'TRC.5'];
+
+            const chartKinerjaTRC = new Chart(ctxKinerjaTRC, {
+                type: 'bar',
+                data: {
+                    labels: labelsTRC,
+                    datasets: [{
+                        label: 'Rata-rata Waktu Respons (Menit)',
+                        data: dataResponseTime.all,
+                        backgroundColor: ['#28a745', '#17a2b8', '#ffc107', '#dc3545', '#007bff']
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    plugins: { legend: { display: false } },
+                    scales: { x: { beginAtZero: true } }
+                }
+            });
+
+            // --- Event Listener Filter Urusan ---
+            document.getElementById('filter-kinerja-urusan').addEventListener('change', function() {
+                const urusan = this.value;
+                chartKinerjaTRC.data.datasets[0].data = dataResponseTime[urusan];
+                chartKinerjaTRC.update();
+            });
+
+        });
+    </script>
+</body>
+</html>

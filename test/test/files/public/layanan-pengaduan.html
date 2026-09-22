@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Layanan Pengaduan - Satpol PP Kaltara</title>
+  <meta name="theme-color" content="#0a5c8a" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Lora:wght@600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --brand: #0a5c8a; --brand-mid: #0e7bb5; --brand-xlight:#edf6fb;
+      --gold: #c9922a; --text: #12213a; --text-soft: #4a5f78;
+      --border: #dce8f0; --bg: #f4f8fb; /* Background abu-abu terang agar form (putih) lebih menonjol */
+      --radius: 14px; --radius-sm: 8px; --shadow: 0 4px 20px rgba(10,92,138,.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); background: var(--bg); line-height: 1.6; }
+    a { color: var(--brand); text-decoration: none; }
+    .container { max-width: 1000px; margin-inline: auto; padding: 0 20px; }
+    
+    /* Header Minimalis & Fokus */
+    header { background: #fff; border-bottom: 1px solid var(--border); padding: 16px 0; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,.03); }
+    .header-inner { display: flex; align-items: center; gap: 16px; }
+    .back-btn { font-weight: 600; display: inline-flex; align-items: center; gap: 6px; color: var(--text-soft); padding: 8px; border-radius: var(--radius-sm); transition: background .2s; }
+    .back-btn:hover { color: var(--brand); background: var(--brand-xlight); }
+    
+    /* Page Title */
+    .page-header { padding: 40px 0 24px; text-align: center; }
+    .page-header h1 { font-family: 'Lora', serif; font-size: 28px; margin: 0 0 8px; color: var(--brand); }
+    .page-header p { color: var(--text-soft); max-width: 600px; margin: 0 auto; }
+
+    .content-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; margin-bottom: 60px; }
+    
+    .card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); }
+    .card h2 { margin: 0 0 20px; font-size: 18px; border-bottom: 2px solid var(--brand-xlight); padding-bottom: 12px; }
+
+    form { display: grid; gap: 16px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    label { font-weight: 600; font-size: 14px; display: block; margin-bottom: 6px; }
+    
+    /* Input Styling Modern */
+    input[type=text], input[type=email], input[type=tel], select, textarea, input[type=file] {
+      width: 100%; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      font-size: 15px; font-family: inherit; background: #fafcff; transition: all .2s;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--brand); background: #fff; box-shadow: 0 0 0 3px rgba(10,92,138,.1); }
+    textarea { min-height: 120px; resize: vertical; }
+    
+    .btn { background: var(--brand); color: #fff; border: none; padding: 12px 24px; border-radius: 999px; font-weight: 700; font-size: 15px; cursor: pointer; transition: all .2s; width: 100%; display: inline-flex; justify-content: center; align-items: center; gap: 8px;}
+    .btn:hover { background: var(--brand-mid); transform: translateY(-1px); }
+    .btn.outline { background: transparent; border: 2px solid var(--brand); color: var(--brand); }
+    .btn.outline:hover { background: var(--brand-xlight); }
+    .hint { font-size: 13px; color: var(--text-soft); margin-top: 4px; }
+
+    .tracker-box { background: var(--brand-xlight); border-radius: var(--radius-sm); padding: 16px; margin-top: 16px; display: none; border: 1px solid var(--brand-light); }
+    
+    @media (max-width: 768px) {
+      .content-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .card { padding: 20px; }
+      .page-header { padding: 24px 0 16px; }
+      .page-header h1 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container header-inner">
+      <a href="beranda" class="back-btn">
+        <span style="font-size:20px">←</span> Kembali ke Beranda
+      </a>
+      <div style="margin-left:auto; display:flex; align-items:center; gap:12px;">
+        <img src="https://simpeg.kaltaraprov.go.id/logo/ori_prov_kaltara.png" alt="Logo" style="width:32px;" />
+        <span style="font-weight:700; font-family:'Lora', serif; color:var(--brand); display:none; @media (min-width: 600px) { display:block; }">Satpol PP Kaltara</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="page-header">
+      <h1>Layanan Pengaduan Trantibum</h1>
+      <p>Laporkan indikasi pelanggaran Peraturan Daerah atau gangguan Ketertiban Umum di wilayah Kalimantan Utara.</p>
+    </div>
+
+    <div class="content-grid">
+      
+      <div class="card">
+        <h2>📝 Formulir Laporan Baru</h2>
+        <form id="formAduan" onsubmit="submitLaporan(event)">
+          
+          <!-- PENGGUNAAN AUTOCOMPLETE UNTUK UX MOBILE YANG SUPERIOR -->
+          <div class="form-row">
+            <div>
+              <label for="nama">Nama Lengkap (Sesuai KTP)</label>
+              <input type="text" id="nama" autocomplete="name" placeholder="Masukkan nama Anda" required>
+            </div>
+            <div>
+              <label for="kontak">Nomor HP / WhatsApp</label>
+              <!-- Gunakan type="tel" agar numpad terbuka otomatis di HP -->
+              <input type="tel" id="kontak" autocomplete="tel" placeholder="08xx-xxxx-xxxx" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div>
+              <label for="kategori">Kategori Laporan</label>
+              <select id="kategori" required>
+                <option value="">-- Pilih Kategori --</option>
+                <option value="perda">Pelanggaran Perda/Pergub</option>
+                <option value="trantibum">Gangguan Ketertiban Umum</option>
+                <option value="bangli">Bangunan Liar / PKL</option>
+                <option value="lainnya">Lainnya</option>
+              </select>
+            </div>
+            <div>
+              <label for="lokasi">Titik Lokasi Kejadian</label>
+              <input type="text" id="lokasi" placeholder="Misal: Jl. Durian, Tarakan" required>
+            </div>
+          </div>
+
+          <div>
+            <label for="deskripsi">Kronologi / Uraian Kejadian</label>
+            <textarea id="deskripsi" placeholder="Ceritakan secara detail apa yang terjadi, kapan, dan siapa saja yang terlibat..." required></textarea>
+          </div>
+
+          <div>
+            <label for="foto">Lampirkan Bukti Foto (Maks 5MB)</label>
+            <input type="file" id="foto" accept="image/*" capture="environment">
+            <div class="hint">Identitas pelapor dijamin kerahasiaannya oleh sistem.</div>
+          </div>
+
+          <div style="margin-top: 12px;">
+            <button type="submit" class="btn">🚀 Kirim Laporan Pengaduan</button>
+          </div>
+          
+          <!-- Tempat pesan sukses/gagal -->
+          <div id="msgAduan" style="text-align:center; margin-top:12px; font-weight:600; padding:12px; border-radius:8px; display:none;"></div>
+        </form>
+      </div>
+
+      <div>
+        <div class="card" id="lacak" style="margin-bottom:24px;">
+          <h2>🔍 Lacak Status Tiket</h2>
+          <p class="hint" style="margin-top:-10px; margin-bottom:16px;">Masukkan nomor tiket yang Anda terima setelah melapor.</p>
+          <form onsubmit="cekStatus(event)">
+            <label for="noTiket" class="sr-only" style="display:none">Nomor Tiket</label>
+            <input type="text" id="noTiket" required placeholder="Contoh: SP-2026-X8Y">
+            <button type="submit" class="btn outline" style="margin-top:4px;">Cek Status</button>
+          </form>
+          
+          <div id="hasilLacak" class="tracker-box">
+            <div style="font-size:12px; font-weight:bold; color:var(--brand)">STATUS SAAT INI:</div>
+            <div style="font-size:18px; font-weight:800; margin-bottom:8px">🟢 Diproses Bidang Penegakan</div>
+            <ul style="padding-left: 20px; font-size:14px; margin:0; color:var(--text-soft)">
+              <li>Laporan Diterima (Hari ini, 08:00)</li>
+              <li>Verifikasi Berkas (Hari ini, 09:30)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card" style="background:var(--brand); color:#fff; border:none;">
+          <h2 style="color:#fff; border-color:rgba(255,255,255,.2)">📞 Bantuan Darurat</h2>
+          <p style="font-size:14px; opacity:.9">Untuk kondisi mendesak yang membahayakan jiwa atau butuh penanganan instan:</p>
+          <div style="font-size:24px; font-weight:800; margin: 16px 0;">(0552) 2036660</div>
+          <a href="https://wa.me/6280000000000" class="btn" style="background:#25D366; color:#fff; border:none;">Chat via WhatsApp</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Handle Form Pengaduan Submission
+    function submitLaporan(e) {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type="submit"]');
+      const msg = document.getElementById('msgAduan');
+      
+      // State: Loading
+      btn.innerHTML = '⏱ Mengirim Data...';
+      btn.disabled = true;
+      btn.style.opacity = '0.7';
+      msg.style.display = 'none';
+
+      // Simulasi pengiriman data ke server (delay 1.5 detik)
+      setTimeout(() => {
+        // Buat ID Tiket acak
+        const noTiket = 'SP-' + new Date().getFullYear() + '-' + Math.random().toString(36).substr(2, 4).toUpperCase();
+        
+        // Reset form
+        e.target.reset();
+        
+        // Kembalikan tombol ke semula
+        btn.innerHTML = '🚀 Kirim Laporan Pengaduan';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        
+        // Tampilkan pesan sukses
+        msg.style.display = 'block';
+        msg.style.backgroundColor = '#e8f7ee'; // Hijau muda
+        msg.style.color = '#1a7a3e'; // Teks Hijau OK
+        msg.innerHTML = `✅ Laporan berhasil dikirim!<br>Nomor Tiket Anda: <span style="font-size:20px; color:var(--brand); display:block; margin:8px 0;">${noTiket}</span><span style="font-size:13px; font-weight:normal; color:var(--text-soft);">Harap simpan/screenshot nomor tiket ini untuk melacak status laporan Anda.</span>`;
+        
+        // Scroll layar pengguna ke arah pesan agar terlihat di layar kecil
+        msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 1500);
+    }
+
+    // Handle Pelacakan Status
+    function cekStatus(e) {
+      e.preventDefault();
+      const tracker = document.getElementById('hasilLacak');
+      const btn = e.target.querySelector('button[type="submit"]');
+      
+      btn.innerHTML = 'Mencari...';
+      
+      setTimeout(() => {
+        tracker.style.display = 'block';
+        btn.innerHTML = 'Cek Status';
+        tracker.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 600);
+    }
+  </script>
+</body>
+</html>

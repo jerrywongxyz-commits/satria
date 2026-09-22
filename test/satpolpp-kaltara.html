@@ -1,0 +1,1497 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Satpol PP – Portal Resmi Kalimantan Utara</title>
+  <meta name="description" content="Portal resmi Satuan Polisi Pamong Praja Provinsi Kalimantan Utara. Profil, layanan pengaduan, berita, agenda, regulasi, PPID, dan kontak." />
+  <meta name="theme-color" content="#0a5c8a" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    :root {
+      --brand:       #0a5c8a;
+      --brand-mid:   #0e7bb5;
+      --brand-light: #d6edf7;
+      --brand-xlight:#edf6fb;
+      --gold:        #c9922a;
+      --gold-light:  #fdf3e3;
+      --text:        #12213a;
+      --text-soft:   #4a5f78;
+      --border:      #dce8f0;
+      --bg:          #ffffff;
+      --bg-2:        #f4f8fb;
+      --bg-3:        #e8f2f8;
+      --danger:      #c0392b;
+      --ok:          #1a7a3e;
+      --warning:     #a26d00;
+      --radius:      14px;
+      --radius-sm:   8px;
+      --shadow:      0 2px 16px rgba(10,92,138,.09);
+      --shadow-lg:   0 8px 40px rgba(10,92,138,.14);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+    a { color: var(--brand); text-decoration: none; transition: color .2s; }
+    a:hover { color: var(--brand-mid); text-decoration: underline; }
+    .container { max-width: 1200px; margin-inline: auto; padding: 0 20px; }
+
+    /* ─── TOPBAR ─── */
+    header.topbar {
+      background: linear-gradient(135deg, #08456d 0%, #0a5c8a 60%, #0d76b0 100%);
+      color: #fff;
+      border-bottom: 3px solid var(--gold);
+    }
+    header .top-inner {
+      display: flex; align-items: center; gap: 18px; padding: 12px 0;
+    }
+    header img.logo {
+      width: 60px; height: 60px; object-fit: contain;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,.25));
+    }
+    .site-title { display: flex; flex-direction: column; gap: 2px; }
+    .site-title b {
+      font-size: 17px; font-family: 'Lora', serif; font-weight: 700;
+      letter-spacing: .3px; line-height: 1.3;
+    }
+    .site-title small {
+      font-size: 12px; opacity: .82; letter-spacing: .3px; font-weight: 500;
+    }
+    .topbar-divider {
+      width: 1px; height: 48px; background: rgba(255,255,255,.2); margin: 0 4px;
+    }
+    .topbar-tagline {
+      font-size: 11px; color: rgba(255,255,255,.75); line-height: 1.5; max-width: 200px;
+      border-left: 2px solid var(--gold); padding-left: 12px; margin-left: 4px;
+    }
+
+    /* ─── NAV ─── */
+    nav.main {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,.97);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(10,92,138,.07);
+    }
+    nav .nav-inner {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0; flex-wrap: wrap;
+    }
+    .nav-links { display: flex; gap: 2px; flex-wrap: wrap; margin-right: auto; }
+    .nav-links a {
+      padding: 8px 13px; border-radius: var(--radius-sm);
+      font-weight: 600; font-size: 14px; color: var(--text-soft);
+      transition: background .18s, color .18s;
+    }
+    .nav-links a:hover { background: var(--brand-xlight); color: var(--brand); text-decoration: none; }
+    .nav-actions { display: flex; gap: 8px; align-items: center; }
+    .search-wrap {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: 999px; padding: 5px 14px; transition: border .2s;
+    }
+    .search-wrap:focus-within { border-color: var(--brand); background: #fff; }
+    .search-wrap input {
+      border: none; background: none; outline: none;
+      font-size: 14px; color: var(--text); width: 160px;
+      font-family: inherit;
+    }
+    .search-wrap button {
+      background: none; border: none; cursor: pointer; color: var(--brand-mid);
+      font-size: 16px; padding: 0; display: flex; align-items: center;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--brand); color: #fff; border: none;
+      padding: 9px 18px; border-radius: 999px; cursor: pointer;
+      font-weight: 700; font-size: 14px; font-family: inherit;
+      transition: background .2s, transform .15s, box-shadow .2s;
+      box-shadow: 0 2px 8px rgba(10,92,138,.2);
+    }
+    .btn:hover { background: var(--brand-mid); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(10,92,138,.28); }
+    .btn.secondary { background: var(--bg-2); color: var(--text); box-shadow: none; }
+    .btn.secondary:hover { background: var(--border); transform: none; }
+    .btn.ghost {
+      background: transparent; color: var(--brand);
+      border: 1.5px solid var(--brand); box-shadow: none;
+    }
+    .btn.ghost:hover { background: var(--brand-xlight); transform: translateY(-1px); }
+    .btn.gold { background: var(--gold); box-shadow: 0 2px 8px rgba(201,146,42,.25); }
+    .btn.gold:hover { background: #b8821f; }
+    .btn.small { padding: 6px 14px; font-size: 13px; }
+    .btn.xs { padding: 4px 10px; font-size: 12px; }
+    .menu-btn { display: none; }
+
+    @media (max-width: 900px) {
+      .menu-btn { display: inline-flex; }
+      .nav-links { display: none; width: 100%; flex-direction: column; }
+      .nav-links.open { display: flex; }
+      .nav-links a { border-radius: 0; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+      .topbar-tagline { display: none; }
+      .topbar-divider { display: none; }
+    }
+
+    /* ─── HERO BANNER ─── */
+    .hero {
+      background: linear-gradient(130deg, #073d5f 0%, #0a5c8a 45%, #0e7bb5 100%);
+      color: #fff; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .hero-gold-bar {
+      height: 4px;
+      background: linear-gradient(90deg, transparent, var(--gold), #f5c842, var(--gold), transparent);
+    }
+    .hero .in {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 36px;
+      padding: 48px 0 52px; position: relative; z-index: 1;
+      align-items: center;
+    }
+    .hero-img-wrap {
+      position: relative;
+    }
+    .hero-img-wrap img {
+      width: 100%; border-radius: 16px;
+      box-shadow: 0 12px 48px rgba(0,0,0,.3);
+      border: 2px solid rgba(255,255,255,.15);
+    }
+    .hero-badge {
+      position: absolute; top: -12px; right: -12px;
+      background: var(--gold); color: #fff;
+      padding: 6px 14px; border-radius: 999px;
+      font-size: 12px; font-weight: 700; letter-spacing: .5px;
+      box-shadow: 0 4px 12px rgba(201,146,42,.4);
+    }
+    .hero-right { display: flex; flex-direction: column; gap: 16px; }
+    .hero-label {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,.12); color: rgba(255,255,255,.9);
+      border: 1px solid rgba(255,255,255,.2);
+      padding: 5px 14px; border-radius: 999px; font-size: 12px; font-weight: 600;
+      width: fit-content;
+    }
+    .hero-label::before { content: '●'; color: #4fd1a2; font-size: 8px; }
+    .hero h1 {
+      margin: 0; font-size: 32px; line-height: 1.25; font-family: 'Lora', serif;
+      font-weight: 700;
+    }
+    .hero h1 span { color: #7ed8f7; }
+    .hero p { margin: 0; color: rgba(255,255,255,.8); font-size: 15px; }
+    .stat-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    }
+    .stat {
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 12px; padding: 14px 12px; text-align: center;
+      backdrop-filter: blur(6px); transition: background .2s;
+    }
+    .stat:hover { background: rgba(255,255,255,.18); }
+    .stat b { display: block; font-size: 24px; font-weight: 800; color: #fff; line-height: 1.1; }
+    .stat small { font-size: 11px; color: rgba(255,255,255,.72); font-weight: 500; margin-top: 4px; display: block; }
+    .hero-img2 {
+      width: 100%; border-radius: 12px; margin-top: 4px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.25);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+
+    @media (max-width: 900px) {
+      .hero .in { grid-template-columns: 1fr; padding: 32px 0; }
+      .hero h1 { font-size: 26px; }
+    }
+
+    /* ─── QUICK LINKS ─── */
+    .ql { background: var(--bg-2); padding: 32px 0; border-bottom: 1px solid var(--border); }
+    .ql-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .ql-header h2 { margin: 0; font-size: 20px; font-weight: 700; }
+    .ql-line { flex: 1; height: 1px; background: var(--border); }
+    .ql-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .ql .card {
+      background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 18px 16px; display: flex; gap: 14px; align-items: flex-start;
+      box-shadow: var(--shadow); transition: transform .2s, box-shadow .2s, border-color .2s;
+      cursor: pointer;
+    }
+    .ql .card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--brand-light); text-decoration: none; }
+    .ql .card .icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: var(--brand-xlight); display: grid; place-items: center;
+      font-size: 20px; flex-shrink: 0; border: 1px solid var(--brand-light);
+      transition: background .2s;
+    }
+    .ql .card:hover .icon { background: var(--brand-light); }
+    .ql .card b { font-size: 14px; font-weight: 700; color: var(--text); }
+    .ql .card .muted { font-size: 13px; color: var(--text-soft); margin-top: 3px; line-height: 1.4; }
+    @media (max-width: 900px) { .ql-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 500px) { .ql-grid { grid-template-columns: 1fr; } }
+
+    /* ─── SECTIONS ─── */
+    section { padding: 48px 0; }
+    .section-header { margin-bottom: 28px; }
+    .section-label {
+      display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--brand); background: var(--brand-xlight);
+      border: 1px solid var(--brand-light); padding: 3px 12px; border-radius: 999px;
+      margin-bottom: 8px;
+    }
+    .section-header h2 {
+      margin: 0 0 8px; font-size: 28px; font-family: 'Lora', serif; font-weight: 700;
+    }
+    .section-header p { margin: 0; color: var(--text-soft); }
+    .section-divider {
+      height: 1px; background: linear-gradient(90deg, var(--border), transparent);
+      margin-bottom: 48px;
+    }
+
+    /* ─── CARDS ─── */
+    .card {
+      background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .card .p { padding: 20px; }
+    .card-title { font-weight: 700; font-size: 16px; margin-bottom: 12px; }
+
+    /* ─── GRIDS ─── */
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    @media (max-width: 900px) {
+      .grid-3, .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    /* ─── DASHBOARD ─── */
+    #dashboard { background: var(--bg-2); border-radius: 20px; padding: 32px; margin: 0 0 8px; }
+    .dashboard-title {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+    }
+    .dashboard-title h2 { margin: 0; font-size: 22px; font-family: 'Lora', serif; }
+    .chart-card .p { padding: 20px; }
+    .chart-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .chart-toolbar b { font-size: 15px; }
+    .tab-group { display: flex; gap: 4px; background: var(--bg-2); border-radius: 999px; padding: 3px; border: 1px solid var(--border); }
+    .tab-group button {
+      background: transparent; border: none; padding: 5px 14px; border-radius: 999px;
+      font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-soft);
+      transition: background .18s, color .18s; font-family: inherit;
+    }
+    .tab-group button.active { background: var(--brand); color: #fff; box-shadow: 0 1px 6px rgba(10,92,138,.25); }
+
+    /* ─── PROFIL ─── */
+    .profil-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 14px 0; }
+    .profil-tab {
+      padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 600;
+      border: 1.5px solid var(--border); color: var(--text-soft); cursor: pointer;
+      transition: all .18s; background: #fff;
+    }
+    .profil-tab:hover, .profil-tab.active { border-color: var(--brand); color: var(--brand); background: var(--brand-xlight); }
+    .org-table { width: 100%; border-collapse: collapse; }
+    .org-table th, .org-table td { padding: 11px 14px; border-bottom: 1px solid var(--border); text-align: left; font-size: 14px; }
+    .org-table th { background: var(--bg-2); font-weight: 700; color: var(--text-soft); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+    .org-table tr:last-child td { border-bottom: none; }
+    .org-table td:first-child { font-weight: 600; }
+    .misi-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+    .misi-list li {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 12px 14px; background: var(--bg-2); border-radius: 10px;
+      border: 1px solid var(--border); font-size: 14px; line-height: 1.5;
+    }
+    .misi-num {
+      width: 26px; height: 26px; border-radius: 999px;
+      background: var(--brand); color: #fff; display: grid; place-items: center;
+      font-size: 12px; font-weight: 800; flex-shrink: 0;
+    }
+    .cms-article h3 { font-family: 'Lora', serif; color: var(--brand); margin: 0 0 10px; }
+    .cms-article p, .cms-article ul { color: var(--text-soft); font-size: 14px; line-height: 1.7; }
+
+    /* ─── FORM ─── */
+    form { display: grid; gap: 14px; }
+    .form-row { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+    label { font-weight: 600; font-size: 14px; display: block; margin-bottom: 4px; }
+    input[type=text], input[type=email], input[type=search], input[type=password], input[type=file], select, textarea {
+      width: 100%; padding: 10px 14px; border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm); font-size: 14px; font-family: inherit;
+      color: var(--text); background: #fff; transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(10,92,138,.1);
+    }
+    textarea { min-height: 110px; resize: vertical; }
+    input[type=submit] {
+      background: var(--brand); color: #fff; border: none;
+      padding: 11px 24px; border-radius: 999px; cursor: pointer;
+      font-weight: 700; font-size: 14px; font-family: inherit;
+      transition: background .2s; box-shadow: 0 2px 8px rgba(10,92,138,.2);
+    }
+    input[type=submit]:hover { background: var(--brand-mid); }
+    .hint { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+    /* ─── NEWS CARDS ─── */
+    .news-card { transition: transform .2s, box-shadow .2s; }
+    .news-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .news-card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+    .chip {
+      display: inline-block; padding: 3px 10px; border-radius: 999px;
+      font-size: 11px; font-weight: 700; letter-spacing: .4px;
+    }
+    .chip.rilis { background: var(--brand-light); color: var(--brand); }
+    .chip.edukasi { background: #e8f7ee; color: #1a7a3e; }
+    .chip.kolaborasi { background: var(--gold-light); color: var(--gold); }
+    .news-card h3 { margin: 8px 0 4px; font-size: 15px; font-weight: 700; line-height: 1.35; }
+    .news-meta { font-size: 12px; color: var(--text-soft); }
+
+    /* ─── TABLE ─── */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th { background: var(--brand); color: #fff; padding: 12px 16px; font-size: 13px; font-weight: 700; text-align: left; }
+    .data-table th:first-child { border-radius: 10px 0 0 0; }
+    .data-table th:last-child { border-radius: 0 10px 0 0; }
+    .data-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: var(--bg-2); }
+
+    /* ─── STAT CARDS ─── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .kpi-card {
+      background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 22px 20px; position: relative; overflow: hidden;
+    }
+    .kpi-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--brand), var(--brand-mid));
+    }
+    .kpi-card.gold::before { background: linear-gradient(90deg, var(--gold), #f0b429); }
+    .kpi-card.green::before { background: linear-gradient(90deg, #1a7a3e, #27ae60); }
+    .kpi-num { font-size: 36px; font-weight: 800; color: var(--brand); line-height: 1; margin-bottom: 4px; }
+    .kpi-card.gold .kpi-num { color: var(--gold); }
+    .kpi-card.green .kpi-num { color: #1a7a3e; }
+    .kpi-label { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+    .kpi-sub { font-size: 13px; color: var(--text-soft); }
+    @media (max-width: 700px) { .kpi-grid { grid-template-columns: 1fr 1fr; } }
+
+    /* ─── REGULASI ─── */
+    .reg-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+    .reg-list li {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 11px 14px; background: var(--bg-2); border-radius: 10px;
+      border: 1px solid var(--border); font-size: 14px;
+    }
+    .reg-list li::before { content: '§'; color: var(--brand); font-weight: 700; flex-shrink: 0; }
+
+    /* ─── KONTAK ─── */
+    .kontak-info-item { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+    .kontak-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: var(--brand-xlight); border: 1px solid var(--brand-light);
+      display: grid; place-items: center; font-size: 18px; flex-shrink: 0;
+    }
+    .kontak-label { font-weight: 700; font-size: 13px; color: var(--text-soft); text-transform: uppercase; letter-spacing: .5px; }
+    .kontak-value { font-size: 14px; font-weight: 500; margin-top: 2px; }
+
+    /* ─── MUTED ─── */
+    .muted { color: var(--text-soft); font-size: 13px; }
+
+    /* ─── BADGE ─── */
+    .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 999px;
+      font-size: 12px; font-weight: 600; background: var(--brand-xlight);
+      color: var(--brand); border: 1px solid var(--brand-light);
+    }
+    .badge.ok { background: #e8f7ee; color: #1a7a3e; border-color: #b7e4c7; }
+    .badge.warn { background: var(--gold-light); color: var(--gold); border-color: #f5d9a0; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: linear-gradient(135deg, #08375a 0%, #0a4d73 100%);
+      color: #b8d8eb; margin-top: 40px;
+      border-top: 3px solid var(--gold);
+    }
+    footer .foot-inner { padding: 48px 0 24px; }
+    footer .cols { display: grid; gap: 32px; grid-template-columns: 2.2fr 1fr 1fr; }
+    footer b, footer strong { color: #fff; }
+    footer a { color: #7ec8e8; }
+    footer a:hover { color: #fff; }
+    footer .foot-nav li { list-style: none; margin-bottom: 8px; }
+    footer .foot-nav { padding: 0; }
+    .foot-brand img { width: 52px; opacity: .9; margin-bottom: 12px; }
+    .foot-brand p { font-size: 14px; line-height: 1.6; }
+    .foot-social { display: flex; gap: 8px; margin-top: 14px; }
+    .foot-social a {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+      display: grid; place-items: center; font-size: 16px;
+      transition: background .2s; text-decoration: none;
+    }
+    .foot-social a:hover { background: rgba(255,255,255,.25); }
+    footer .bottom {
+      border-top: 1px solid rgba(255,255,255,.08); margin-top: 24px;
+      padding: 16px 0 0; font-size: 13px;
+      display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    }
+    @media (max-width: 900px) { footer .cols { grid-template-columns: 1fr; } }
+
+    /* ─── MODAL ─── */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(8,55,90,.45);
+      backdrop-filter: blur(4px);
+      display: grid; place-items: center; padding: 16px; z-index: 1000;
+    }
+    .modal {
+      width: min(440px, 100%);
+      background: #fff; border-radius: 20px; padding: 28px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.2);
+      animation: slideIn .25s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes slideIn { from { transform: translateY(24px) scale(.97); opacity: 0; } to { transform: none; opacity: 1; } }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .modal-header h3 { margin: 0; font-family: 'Lora', serif; font-size: 20px; }
+    .modal-close {
+      width: 32px; height: 32px; border-radius: 50%; background: var(--bg-2); border: none;
+      cursor: pointer; font-size: 18px; display: grid; place-items: center;
+      transition: background .18s; color: var(--text);
+    }
+    .modal-close:hover { background: var(--border); }
+    .login-logo {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+      padding-bottom: 16px; border-bottom: 1px solid var(--border);
+    }
+    .login-logo img { width: 40px; }
+    .login-logo span { font-size: 13px; font-weight: 600; color: var(--text-soft); }
+
+    /* ─── AGENDA MINI LIST ─── */
+    .agenda-mini { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+    .agenda-mini li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
+
+    /* ─── QR / WA CARD ─── */
+    .qr-section { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+    #qrAduan { flex-shrink: 0; }
+
+    /* ─── LACAK ─── */
+    #hasilLacak ul { padding-left: 18px; margin: 6px 0 0; }
+    #hasilLacak li { margin-bottom: 4px; font-size: 14px; }
+
+    /* ─── UTILS ─── */
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .flex { display: flex; gap: 8px; align-items: center; }
+    .mt { margin-top: 12px; }
+    .shadow { box-shadow: var(--shadow); }
+    .text-center { text-align: center; }
+
+    @media print {
+      nav, .hero, .ql, .nav-actions { display: none !important; }
+      section { page-break-inside: avoid; }
+    }
+
+    /* ─── SECTION ALTERNATING BG ─── */
+    section.alt { background: var(--bg-2); border-radius: 20px; padding: 40px; margin: 0 0 16px; }
+  </style>
+</head>
+<body>
+  <a class="sr-only" href="#main">Lewati ke konten utama</a>
+
+  <!-- ═══ TOPBAR (dipertahankan, dipercantik) ═══ -->
+  <header class="topbar">
+    <div class="container top-inner">
+      <img class="logo" src="https://simpeg.kaltaraprov.go.id/logo/ori_prov_kaltara.png" alt="Lambang Provinsi Kalimantan Utara" />
+      <div class="site-title">
+        <b>Satuan Polisi Pamong Praja Provinsi Kalimantan Utara</b>
+        <small>Pemerintah Provinsi Kalimantan Utara — Portal Resmi</small>
+      </div>
+      <div class="topbar-divider"></div>
+      <div class="topbar-tagline">Melayani dengan Tegas, Humanis, dan Profesional</div>
+    </div>
+  </header>
+  <div class="hero-gold-bar"></div>
+
+  <!-- ═══ NAV ═══ -->
+  <nav class="main" aria-label="Navigasi utama">
+    <div class="container nav-inner">
+      <button class="btn secondary small menu-btn" id="menuBtn" aria-expanded="false" aria-controls="navLinks">☰ Menu</button>
+      <div class="nav-links" id="navLinks">
+        <a href="#beranda">Beranda</a>
+        <a href="#profil">Profil</a>
+        <a href="#layanan">Layanan</a>
+        <a href="#berita">Berita</a>
+        <a href="#agenda">Agenda</a>
+        <a href="#regulasi">Regulasi</a>
+        <a href="#ppid">PPID</a>
+        <a href="#kontak">Kontak</a>
+      </div>
+      <div class="nav-actions">
+        <form class="search-wrap" role="search" onsubmit="searchSite(event)">
+          <label class="sr-only" for="q">Cari</label>
+          <button type="submit" aria-label="Cari">🔍</button>
+          <input id="q" name="q" type="search" placeholder="Cari layanan / berita…" />
+        </form>
+        <button class="btn gold small" id="loginBtn" aria-haspopup="dialog" aria-controls="loginModal">
+          🔐 Masuk
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══ HERO ═══ -->
+  <section id="beranda" class="hero" role="region" aria-label="Beranda">
+    <div class="container in">
+      <div class="hero-img-wrap">
+        <span class="hero-badge">✦ Prov. Kalimantan Utara</span>
+        <img src="IMG_7133.PNG" alt="Ilustrasi kegiatan Satpol PP" />
+      </div>
+      <div class="hero-right">
+        <div class="hero-label">Aktif &amp; Responsif</div>
+        <h1>Tegak <span>Aturan</span>, Jaga<br>Ketentraman Bumi Benuanta</h1>
+        <p>Portal resmi Satuan Polisi Pamong Praja Provinsi Kalimantan Utara — laporan pengaduan, jadwal operasi, dan informasi publik dalam genggaman Anda.</p>
+        <div class="stat-grid">
+          <div class="stat" aria-label="Jumlah operasi bulan ini"><b id="s1">28</b><small>Operasi Bulan Ini</small></div>
+          <div class="stat" aria-label="Pengaduan ditindak"><b id="s2">91%</b><small>Pengaduan Ditindak</small></div>
+          <div class="stat" aria-label="Skor kepuasan"><b id="s3">4.6/5</b><small>Skor Kepuasan</small></div>
+        </div>
+        <img class="hero-img2" src="IMG_3578.PNG" alt="Kegiatan lapangan Satpol PP Kaltara" />
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ QUICK LINKS ═══ -->
+  <div class="ql" aria-label="Tautan layanan cepat">
+    <div class="container">
+      <div class="ql-header">
+        <h2>Tautan Cepat</h2>
+        <div class="ql-line"></div>
+      </div>
+      <div class="ql-grid">
+        <a class="card" href="#pengaduan">
+          <div class="icon">🚨</div>
+          <div>
+            <b>Pengaduan Masyarakat</b>
+            <div class="muted">Laporkan pelanggaran Perda/Perkada dengan mudah.</div>
+          </div>
+        </a>
+        <a class="card" href="#agenda">
+          <div class="icon">📅</div>
+          <div>
+            <b>Jadwal Penertiban</b>
+            <div class="muted">Lihat agenda operasi ketertiban terkini.</div>
+          </div>
+        </a>
+        <a class="card" href="#regulasi">
+          <div class="icon">⚖️</div>
+          <div>
+            <b>Dasar Hukum</b>
+            <div class="muted">Perda, Pergub/Bupati/Walikota terkait tugas Satpol PP.</div>
+          </div>
+        </a>
+        <a class="card" href="#ppid">
+          <div class="icon">ℹ️</div>
+          <div>
+            <b>PPID</b>
+            <div class="muted">Akses informasi publik &amp; layanan keberatan.</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PORTAL DIGITAL STRIP ═══ -->
+  <div style="background:linear-gradient(90deg,#08375a,#0a5c8a);padding:20px 0;border-bottom:1px solid rgba(255,255,255,.1)">
+    <div class="container">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <span style="color:#fff;font-weight:700;font-size:15px;font-family:'Lora',serif">🌐 Portal Layanan Digital</span>
+        <span style="height:1px;flex:1;background:rgba(255,255,255,.15)"></span>
+        <span style="font-size:12px;color:rgba(255,255,255,.6)">Fitur tambahan tersedia di halaman terpisah</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+        <a href="chatbot.html" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:16px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;transition:background .2s;text-decoration:none" onmouseover="this.style.background='rgba(255,255,255,.18)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">
+          <span style="font-size:28px">🤖</span>
+          <b style="color:#fff;font-size:14px">Asisten AI (SIPA)</b>
+          <span style="color:rgba(255,255,255,.7);font-size:12px">Tanya jawab otomatis 24 jam</span>
+        </a>
+        <a href="dashboard-publik.html" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:16px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;transition:background .2s;text-decoration:none" onmouseover="this.style.background='rgba(255,255,255,.18)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">
+          <span style="font-size:28px">📊</span>
+          <b style="color:#fff;font-size:14px">Dashboard Publik</b>
+          <span style="color:rgba(255,255,255,.7);font-size:12px">Statistik & transparansi kinerja</span>
+        </a>
+        <a href="galeri.html" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:16px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;transition:background .2s;text-decoration:none" onmouseover="this.style.background='rgba(255,255,255,.18)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">
+          <span style="font-size:28px">📸</span>
+          <b style="color:#fff;font-size:14px">Galeri Kegiatan</b>
+          <span style="color:rgba(255,255,255,.7);font-size:12px">Foto & video operasi lapangan</span>
+        </a>
+        <a href="laporan-survei.html" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:16px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;transition:background .2s;text-decoration:none" onmouseover="this.style.background='rgba(255,255,255,.18)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">
+          <span style="font-size:28px">📋</span>
+          <b style="color:#fff;font-size:14px">Laporan & Survei</b>
+          <span style="color:rgba(255,255,255,.7);font-size:12px">Unduh laporan & beri penilaian</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MAIN CONTENT ═══ -->
+  <main id="main" class="container">
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" style="padding-top:40px">
+      <div style="background:var(--bg-2);border-radius:20px;padding:32px;border:1px solid var(--border)">
+        <div class="dashboard-title">
+          <span style="font-size:22px">📊</span>
+          <h2 style="margin:0;font-size:22px;font-family:'Lora',serif">Ringkasan Trantibum</h2>
+        </div>
+        <div class="grid-2">
+          <div class="card shadow">
+            <div class="p">
+              <div class="chart-toolbar">
+                <b>Rekap Pengaduan</b>
+                <div class="tab-group">
+                  <button class="active" id="btnDaily">Harian</button>
+                  <button id="btnMonthly">Bulanan</button>
+                </div>
+              </div>
+              <canvas id="chartRekap" height="190" aria-label="Grafik rekap pengaduan"></canvas>
+              <div class="hint" style="margin-top:8px">📌 Sumber: internal Satpol PP Kaltara</div>
+            </div>
+          </div>
+          <div class="card shadow">
+            <div class="p">
+              <b>Peta Rawan Pelanggaran</b>
+              <div id="mapRawan" style="height:340px;border-radius:10px;overflow:hidden;margin-top:10px"></div>
+              <div class="hint" style="margin-top:8px">Level kerawanan 1–5 (hijau→kuning→merah)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider" style="margin-top:48px"></div>
+
+    <!-- PROFIL -->
+    <section id="profil">
+      <div class="section-header">
+        <div class="section-label">Tentang Kami</div>
+        <h2>Profil Satpol PP Kaltara</h2>
+        <p>Tugas, fungsi, dan struktur organisasi Satuan Polisi Pamong Praja Provinsi Kalimantan Utara.</p>
+      </div>
+
+      <div class="grid-3" style="margin-bottom:20px">
+        <div class="card">
+          <div class="p">
+            <div style="font-size:28px;margin-bottom:8px">🎯</div>
+            <div class="card-title">Tugas Utama</div>
+            <ul class="misi-list">
+              <li><div class="misi-num">1</div>Menegakkan Peraturan Daerah dan Peraturan Kepala Daerah.</li>
+              <li><div class="misi-num">2</div>Menyelenggarakan ketertiban umum dan ketentraman masyarakat.</li>
+              <li><div class="misi-num">3</div>Menyelenggarakan perlindungan masyarakat.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="p">
+            <div style="font-size:28px;margin-bottom:8px">⚙️</div>
+            <div class="card-title">Fungsi</div>
+            <ul class="misi-list">
+              <li><div class="misi-num">1</div>Perumusan kebijakan penegakan Perda/Perkada.</li>
+              <li><div class="misi-num">2</div>Pemeliharaan ketertiban umum dan ketentraman.</li>
+              <li><div class="misi-num">3</div>Pelaksanaan koordinasi, pembinaan, dan pengawasan.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="p">
+            <div style="font-size:28px;margin-bottom:8px">🏛️</div>
+            <div class="card-title">Struktur Organisasi</div>
+            <table class="org-table" aria-label="Struktur organisasi">
+              <thead><tr><th>Jabatan</th><th>Nama</th></tr></thead>
+              <tbody>
+                <tr><td>Kepala Satpol PP</td><td>—</td></tr>
+                <tr><td>Sekretariat</td><td>—</td></tr>
+                <tr><td>Bidang Penegakan Perda</td><td>—</td></tr>
+                <tr><td>Bidang Trantibumlinmas</td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profil Lengkap CMS -->
+      <div class="card" style="margin-top:8px">
+        <div class="p">
+          <div class="flex" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+            <b style="font-size:16px">Profil Lengkap</b>
+            <div class="flex">
+              <button class="btn secondary small" id="toggleEdit">✏️ Mode Edit</button>
+              <button class="btn small" id="saveCMS" style="display:none">💾 Simpan</button>
+            </div>
+          </div>
+          <div class="profil-tabs" role="tablist">
+            <a class="profil-tab" href="#kata-pengantar">Kata Pengantar</a>
+            <a class="profil-tab" href="#latar-belakang">Latar Belakang</a>
+            <a class="profil-tab" href="#visi-misi">Visi &amp; Misi</a>
+            <a class="profil-tab" href="#tupoksi">Implementasi Strategis</a>
+            <a class="profil-tab" href="#struktur">Struktur Org</a>
+            <a class="profil-tab" href="#pimpinan">Profil Pimpinan</a>
+          </div>
+          <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+
+          <article id="kata-pengantar" class="cms cms-article" data-cms-key="kataPengantar">
+            <h3>Kata Pengantar</h3>
+            <p>Isi kata pengantar di sini…</p>
+          </article>
+          <article id="latar-belakang" class="cms cms-article" data-cms-key="latarBelakang">
+            <h3>Latar Belakang</h3>
+            <p>Uraikan dasar pembentukan, konteks daerah, dan peran Satpol PP Kaltara.</p>
+          </article>
+          <article id="visi" class="cms cms-article" data-cms-key="visiMisi">
+            <h3>Visi Gubernur Kalimantan Utara</h3>
+            <p><em>"Terwujudnya Fondasi Transformasi Kalimantan Utara yang Kokoh sebagai Beranda Depan NKRI yang Maju, Makmur, dan Berkelanjutan."</em></p>
+            <h3>Misi Gubernur Kalimantan Utara</h3>
+            <ul class="misi-list">
+              <li><div class="misi-num">1</div>Transformasi Sosial yang inklusif dan berkeadilan melalui penguatan ketahanan sosial dan SDM.</li>
+              <li><div class="misi-num">2</div>Transformasi Ekonomi yang berkelanjutan, merata, dan inklusif mengoptimalkan potensi SDA.</li>
+              <li><div class="misi-num">3</div>Tata Kelola pemerintahan yang kolaboratif, inovatif, bersih, berwibawa, dan melayani.</li>
+              <li><div class="misi-num">4</div>Supremasi Hukum dan Stabilitas sebagai beranda depan NKRI guna menjamin keamanan dan ketertiban.</li>
+              <li><div class="misi-num">5</div>Ketahanan Sosial Budaya, kearifan lokal, serta pengelolaan lingkungan hidup berkelanjutan.</li>
+              <li><div class="misi-num">6</div>Pembangunan Wilayah yang merata, terutama di kawasan perbatasan dan pulau terluar.</li>
+              <li><div class="misi-num">7</div>Infrastruktur berkualitas dan ramah lingkungan di seluruh wilayah Kaltara.</li>
+              <li><div class="misi-num">8</div>Keseimbangan Pembangunan Kaltara untuk mengawal pencapaian Indonesia Emas.</li>
+            </ul>
+          </article>
+          <article id="tupoksi" class="cms cms-article" data-cms-key="tupoksi">
+            <h3>Implementasi Strategis Mendukung Misi Gubernur</h3>
+            <p style="text-align:justify">Sebagai garda terdepan di Beranda Depan NKRI, Satuan Polisi Pamong Praja Provinsi Kalimantan Utara berperan strategis dalam mengejawantahkan Misi ke-4 Gubernur, yakni memantapkan supremasi hukum dan stabilitas daerah. Melalui penegakan Peraturan Daerah yang konsisten serta penyelenggaraan ketertiban umum yang preventif dan humanis, kami berkomitmen menciptakan iklim wilayah yang aman, tertib, dan kondusif — pondasi krusial bagi keberlanjutan transformasi pembangunan di Bumi Benuanta.</p>
+          </article>
+          <article id="struktur" class="cms cms-article" data-cms-key="strukturOrg">
+            <h3>Struktur Organisasi</h3>
+            <p>Tambahkan bagan/daftar jabatan dan unit kerja.</p>
+          </article>
+          <article id="pimpinan" class="cms cms-article" data-cms-key="profilPimpinan">
+            <h3>Profil Pimpinan</h3>
+            <p>Foto &amp; biografi pimpinan Satpol PP Kaltara.</p>
+          </article>
+          <div class="hint">Mode Edit menyimpan di browser (sementara). Untuk produksi, sambungkan ke CMS/database.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- LAYANAN -->
+    <section id="layanan">
+      <div class="section-header">
+        <div class="section-label">Layanan Publik</div>
+        <h2>Layanan Satpol PP</h2>
+        <p>Sampaikan pengaduan, cek jadwal operasi, dan lacak status laporan Anda.</p>
+      </div>
+
+      <div class="grid-2">
+        <!-- Form Pengaduan -->
+        <div class="card shadow" id="pengaduan">
+          <div class="p">
+            <div class="card-title">🚨 Form Pengaduan Masyarakat</div>
+            <form id="formPengaduan" onsubmit="submit_pengaduan.php">
+              <div class="form-row">
+                <div>
+                  <label for="nama">Nama Lengkap</label>
+                  <input id="nama" name="nama" type="text" placeholder="Nama Anda" required />
+                </div>
+                <div>
+                  <label for="kontak">Email / No. HP</label>
+                  <input id="kontak" name="kontak" type="email" placeholder="email@contoh.com" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div>
+                  <label for="lokasi">Lokasi Kejadian</label>
+                  <input id="lokasi" name="lokasi" type="text" placeholder="Alamat atau koordinat" required />
+                </div>
+                <div>
+                  <label for="kategori">Kategori Pelanggaran</label>
+                  <select id="kategori" name="kategori" required>
+                    <option value="">— Pilih Kategori —</option>
+                    <option>Pelanggaran Perda</option>
+                    <option>Gangguan Ketertiban</option>
+                    <option>Ketentraman Masyarakat</option>
+                    <option>Perlindungan Masyarakat</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label for="uraian">Uraian Kejadian</label>
+                <textarea id="uraian" name="uraian" placeholder="Jelaskan kejadian secara singkat dan jelas…" required></textarea>
+              </div>
+              <div>
+                <label for="lampiran">Lampiran Bukti (opsional)</label>
+                <input id="lampiran" name="lampiran" type="file" />
+                <div class="hint">Format foto/video. *Hubungkan ke DMS/drive Anda.</div>
+              </div>
+              <div class="form-row">
+                <div>
+                  <label for="captcha">Verifikasi: 2 + 3 = ?</label>
+                  <input id="captcha" name="captcha" type="text" placeholder="Isi jawaban" required />
+                </div>
+                <div style="display:flex;align-items:flex-end;gap:10px">
+                  <input type="submit" class="btn" value="Kirim Pengaduan" />
+                </div>
+              </div>
+              <div id="notif" class="muted"></div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Jadwal + QR + Lacak -->
+        <div style="display:flex;flex-direction:column;gap:18px">
+          <!-- Jadwal Mini -->
+          <div class="card shadow">
+            <div class="p">
+              <div class="card-title">📅 Jadwal &amp; Operasi Terkini</div>
+              <ul class="agenda-mini" id="agendaListMini">
+                <li><span class="badge">10 Sep</span> Operasi penertiban reklame — Koridor Utama</li>
+                <li><span class="badge">14 Sep</span> Patroli gabungan kawasan pasar</li>
+                <li><span class="badge">18 Sep</span> Simulasi linmas &amp; mitigasi bencana</li>
+              </ul>
+              <div style="margin-top:14px"><a class="btn ghost small" href="#agenda">Lihat Semua Agenda →</a></div>
+            </div>
+          </div>
+
+          <!-- QR & WA -->
+          <div class="card shadow">
+            <div class="p">
+              <div class="card-title">📲 Kanal Layanan Digital</div>
+              <div class="qr-section">
+                <div>
+                  <div id="qrAduan" style="width:130px;height:130px;border-radius:8px;overflow:hidden"></div>
+                  <div class="muted" style="margin-top:6px;font-size:12px;text-align:center">Scan QR Pengaduan AI</div>
+                </div>
+                <div>
+                  <p class="muted" style="margin:0 0 10px">Scan kode QR untuk membuka asisten pengaduan berbasis AI, atau hubungi kami langsung via WhatsApp.</p>
+                  <a class="btn ghost small" id="linkAduanAI" href="#" target="_blank" rel="noopener">🤖 Buka Asisten AI</a>
+                  <br><br>
+                  <div style="font-weight:700;font-size:14px;margin-bottom:4px">💬 WhatsApp</div>
+                  <a id="waNumber" href="https://wa.me/6280000000000" target="_blank" rel="noopener" style="font-weight:600">+62 800-0000-0000</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lacak -->
+          <div class="card shadow">
+            <div class="p">
+              <div class="card-title">🔍 Lacak Status Pengaduan</div>
+              <form onsubmit="lacakAduan(event)">
+                <label for="ticket">Nomor Tiket</label>
+                <input id="ticket" type="text" placeholder="Contoh: SP-ABC12" required />
+                <input type="submit" class="btn small" value="Lacak Sekarang" />
+              </form>
+              <div id="hasilLacak" class="muted" style="margin-top:10px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- BERITA -->
+    <section id="berita">
+      <div class="section-header" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px">
+        <div>
+          <div class="section-label">Informasi</div>
+          <h2 style="margin-bottom:0">Berita &amp; Kegiatan</h2>
+        </div>
+        <a class="btn ghost small" href="#">Semua Berita →</a>
+      </div>
+      <div class="grid-3" id="newsGrid">
+        <article class="card shadow news-card">
+          <img loading="lazy" src="https://placehold.co/640x360/0a5c8a/ffffff?text=Operasi+Penertiban" alt="Kegiatan operasi penertiban" />
+          <div class="p">
+            <span class="chip rilis">Rilis</span>
+            <h3>Operasi Ketertiban Kawasan Niaga</h3>
+            <div class="news-meta">09 Sep 2025 &bull; Bidang Penegakan Perda</div>
+          </div>
+        </article>
+        <article class="card shadow news-card">
+          <img loading="lazy" src="https://placehold.co/640x360/1a7a3e/ffffff?text=Edukasi+PKL" alt="Sosialisasi PKL" />
+          <div class="p">
+            <span class="chip edukasi">Edukasi</span>
+            <h3>Sosialisasi Tertib Usaha bagi PKL</h3>
+            <div class="news-meta">05 Sep 2025 &bull; Sekretariat</div>
+          </div>
+        </article>
+        <article class="card shadow news-card">
+          <img loading="lazy" src="https://placehold.co/640x360/c9922a/ffffff?text=Patroli+Gabungan" alt="Patroli gabungan" />
+          <div class="p">
+            <span class="chip kolaborasi">Kolaborasi</span>
+            <h3>Patroli Gabungan dengan Perangkat Daerah</h3>
+            <div class="news-meta">31 Agu 2025 &bull; Trantibumlinmas</div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- AGENDA -->
+    <section id="agenda">
+      <div class="section-header">
+        <div class="section-label">Jadwal</div>
+        <h2>Agenda Kegiatan</h2>
+      </div>
+      <div class="card shadow" style="overflow:auto">
+        <table class="data-table" aria-label="Agenda kegiatan Satpol PP">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Kegiatan</th>
+              <th>Lokasi</th>
+              <th>Penanggung Jawab</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge">10 Sep 2025</span></td>
+              <td>Operasi penertiban reklame</td>
+              <td>Koridor Utama</td>
+              <td>Bidang Penegakan</td>
+            </tr>
+            <tr>
+              <td><span class="badge">14 Sep 2025</span></td>
+              <td>Patroli gabungan pasar</td>
+              <td>Pasar Induk</td>
+              <td>Trantibum</td>
+            </tr>
+            <tr>
+              <td><span class="badge">18 Sep 2025</span></td>
+              <td>Simulasi Linmas &amp; Mitigasi Bencana</td>
+              <td>Alun-alun Kota</td>
+              <td>Perlinmas</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- STATISTIK -->
+    <section style="padding-top:0">
+      <div class="section-header">
+        <div class="section-label">Kinerja</div>
+        <h2>Statistik Kinerja Tahun Berjalan</h2>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-num" id="stA">120</div>
+          <div class="kpi-label">Pengaduan Masuk</div>
+          <div class="kpi-sub">Total laporan diterima tahun ini</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-num" id="stB">109</div>
+          <div class="kpi-label">Tindak Lanjut Selesai</div>
+          <div class="kpi-sub"><span id="stB2">11</span> kasus masih dalam proses</div>
+        </div>
+        <div class="kpi-card gold">
+          <div class="kpi-num" id="stC">86</div>
+          <div class="kpi-label">Operasi Ketertiban</div>
+          <div class="kpi-sub">Total kegiatan operasi lapangan</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- REGULASI -->
+    <section id="regulasi">
+      <div class="section-header">
+        <div class="section-label">Hukum &amp; Regulasi</div>
+        <h2>Dasar Hukum</h2>
+        <p>Peraturan Daerah dan Peraturan Kepala Daerah yang menjadi landasan tugas Satpol PP.</p>
+      </div>
+      <div class="grid-2">
+        <div class="card shadow">
+          <div class="p">
+            <div class="card-title">📜 Peraturan Daerah</div>
+            <ul class="reg-list">
+              <li>Perda No. x Tahun xxxx tentang Ketertiban Umum</li>
+              <li>Perda No. y Tahun yyyy tentang Retribusi Pemakaian Kekayaan Daerah</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card shadow">
+          <div class="p">
+            <div class="card-title">📋 Peraturan Kepala Daerah</div>
+            <ul class="reg-list">
+              <li>Peraturan Gubernur No. … Tahun … tentang Penjabaran Tugas Satpol PP</li>
+              <li>Keputusan Kepala Daerah tentang Pembentukan Tim Operasi</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="hint" style="margin-top:10px">* Isi daftar sesuai ketentuan di daerah Anda. Sediakan pranala ke dokumen PDF resmi.</div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- PPID -->
+    <section id="ppid">
+      <div class="section-header">
+        <div class="section-label">Keterbukaan Informasi</div>
+        <h2>PPID — Pejabat Pengelola Informasi &amp; Dokumentasi</h2>
+      </div>
+      <div class="grid-2">
+        <div class="card shadow">
+          <div class="p">
+            <div class="card-title">📂 Informasi Berkala</div>
+            <ul class="reg-list">
+              <li>Profil, tugas &amp; fungsi organisasi</li>
+              <li>Program dan kegiatan tahunan</li>
+              <li>Ringkasan RKPD/Renja terkait Satpol PP</li>
+              <li>Daftar regulasi dan SOP</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card shadow">
+          <div class="p">
+            <div class="card-title">📝 Permohonan Informasi Publik</div>
+            <form onsubmit="ajukanPPID(event)">
+              <div>
+                <label for="info">Rincian Informasi yang Diminta</label>
+                <textarea id="info" placeholder="Jelaskan informasi yang Anda butuhkan…" required></textarea>
+              </div>
+              <div class="form-row">
+                <div>
+                  <label for="pemohon">Nama Pemohon</label>
+                  <input id="pemohon" type="text" required />
+                </div>
+                <div>
+                  <label for="ppidEmail">Email</label>
+                  <input id="ppidEmail" type="email" required />
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <input type="submit" class="btn" value="Ajukan Permohonan" />
+                <span id="ppidNotif" class="muted"></span>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- KONTAK -->
+    <section id="kontak">
+      <div class="section-header">
+        <div class="section-label">Hubungi Kami</div>
+        <h2>Kontak &amp; Lokasi</h2>
+      </div>
+      <div class="grid-2">
+        <div class="card shadow">
+          <div class="p">
+            <div class="card-title">📍 Informasi Kontak</div>
+            <div class="kontak-info-item">
+              <div class="kontak-icon">🏢</div>
+              <div>
+                <div class="kontak-label">Alamat</div>
+                <div class="kontak-value">Jalan H. Masykur No. 019, Tanjung Selor<br>Kode Pos 77212, Kalimantan Utara</div>
+              </div>
+            </div>
+            <div class="kontak-info-item">
+              <div class="kontak-icon">📞</div>
+              <div>
+                <div class="kontak-label">Telepon</div>
+                <div class="kontak-value">(0552) 2036660</div>
+              </div>
+            </div>
+            <div class="kontak-info-item">
+              <div class="kontak-icon">✉️</div>
+              <div>
+                <div class="kontak-label">Email</div>
+                <div class="kontak-value"><a href="mailto:satuanppprovkaltara@gmail.com">satuanppprovkaltara@gmail.com</a></div>
+              </div>
+            </div>
+            <div style="margin-top:14px;border-radius:12px;overflow:hidden;border:1px solid var(--border)">
+              <iframe
+                title="Peta Kantor Satpol PP Kaltara"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5525.955934651934!2d117.3626237!3d2.8409180000000003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3213cf6cdd0efe99%3A0x16f114bc2cab4cb0!2sKantor%20Polisi%20Pamong%20Praja!5e1!3m2!1sen!2sid!4v1778536642748!5m2!1sen!2sid"
+                style="border:0;width:100%;height:220px;display:block"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade">
+              </iframe>
+            </div>
+          </div>
+        </div>
+        <div class="card shadow">
+          <div class="p">
+            <div class="card-title">✉️ Kirim Pesan</div>
+            <form id="contactForm" onsubmit="kirimKontak(event)">
+              <div class="form-row">
+                <div>
+                  <label for="cnama">Nama</label>
+                  <input id="cnama" type="text" placeholder="Nama Anda" required />
+                </div>
+                <div>
+                  <label for="cemail">Email</label>
+                  <input id="cemail" type="email" placeholder="email@contoh.com" required />
+                </div>
+              </div>
+              <div>
+                <label for="cpesan">Pesan</label>
+                <textarea id="cpesan" placeholder="Tulis pesan Anda di sini…" required></textarea>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <input type="submit" class="btn" value="Kirim Pesan" />
+                <span id="kontakNotif" class="muted"></span>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer>
+    <div class="container foot-inner">
+      <div class="cols">
+        <div class="foot-brand">
+          <img src="https://simpeg.kaltaraprov.go.id/logo/ori_prov_kaltara.png" alt="Logo Kaltara" />
+          <strong>Satuan Polisi Pamong Praja</strong>
+          <p>Portal resmi informasi, layanan pengaduan, dan edukasi ketertiban umum &amp; ketentraman masyarakat Provinsi Kalimantan Utara.</p>
+          <div class="foot-social">
+            <a href="#" aria-label="Facebook">f</a>
+            <a href="#" aria-label="Instagram">📸</a>
+            <a href="#" aria-label="YouTube">▶</a>
+          </div>
+        </div>
+        <div>
+          <strong>Navigasi</strong>
+          <ul class="foot-nav" style="margin-top:10px">
+            <li><a href="#profil">Profil</a></li>
+            <li><a href="#layanan">Layanan</a></li>
+            <li><a href="#berita">Berita</a></li>
+            <li><a href="#agenda">Agenda</a></li>
+            <li><a href="#regulasi">Regulasi</a></li>
+            <li><a href="#ppid">PPID</a></li>
+            <li><a href="#kontak">Kontak</a></li>
+          </ul>
+        </div>
+        <div>
+          <strong>Portal Digital</strong>
+          <ul class="foot-nav" style="margin-top:10px">
+            <li><a href="chatbot.html">🤖 Asisten AI (SIPA)</a></li>
+            <li><a href="dashboard-publik.html">📊 Dashboard Publik</a></li>
+            <li><a href="galeri.html">📸 Galeri Kegiatan</a></li>
+            <li><a href="laporan-survei.html">📋 Laporan &amp; Survei</a></li>
+            <li><a href="laporan-survei.html#tab-bahasa">🗣️ Bahasa Daerah</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="bottom">
+        <span>© <span id="year"></span> Satpol PP Provinsi Kalimantan Utara. Seluruh hak cipta dilindungi.</span>
+        <a href="#">Kebijakan Privasi</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ═══ MODAL LOGIN ═══ -->
+  <div class="modal-backdrop" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="loginTitle">Portal Masuk</h3>
+        <button class="modal-close" id="closeLogin" aria-label="Tutup">×</button>
+      </div>
+      <div class="login-logo">
+        <img src="https://simpeg.kaltaraprov.go.id/logo/ori_prov_kaltara.png" alt="Logo" />
+        <span>Satpol PP Kalimantan Utara — Area Petugas</span>
+      </div>
+      <form id="loginForm" action="auth.php" method="POST">
+        <div>
+          <label for="loginEmail">Username</label>
+          <input id="loginEmail" type="text" name="username" autocomplete="username" placeholder="Username Anda" required />
+        </div>
+        <div>
+          <label for="loginPass">Kata Sandi</label>
+          <input id="loginPass" type="password" name="password" autocomplete="current-password" placeholder="••••••••" required />
+        </div>
+        <div class="flex" style="justify-content:space-between;font-size:14px">
+          <label class="flex" style="gap:6px;font-weight:400;cursor:pointer">
+            <input type="checkbox" id="rememberMe" /> Ingat saya
+          </label>
+          <a href="#" style="color:var(--text-soft)">Lupa kata sandi?</a>
+        </div>
+        <input type="submit" class="btn" value="Masuk ke Portal" />
+        <div id="loginNotif" class="hint" style="margin-top:4px;text-align:center"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script>
+    // ─── Tahun ───
+    const yearEl = document.getElementById('year');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+    // ─── Mobile nav ───
+    const menuBtn = document.getElementById('menuBtn');
+    const navLinks = document.getElementById('navLinks');
+    if (menuBtn) {
+      menuBtn.addEventListener('click', () => {
+        const open = navLinks.classList.toggle('open');
+        menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+    }
+
+    // ─── Search ───
+    function searchSite(e) {
+      e.preventDefault();
+      const val = (document.getElementById('q').value || '').toLowerCase().trim();
+      const grid = document.getElementById('newsGrid');
+      if (!grid || !val) return;
+      [...grid.children].forEach(card => {
+        card.style.display = card.textContent.toLowerCase().includes(val) ? '' : 'none';
+      });
+    }
+    window.searchSite = searchSite;
+
+    // ─── Sanitizer ───
+    function sanitize(html) {
+      const d = document.createElement('div');
+      d.innerHTML = html;
+      d.querySelectorAll('script').forEach(s => s.remove());
+      d.querySelectorAll('*').forEach(el => {
+        [...el.attributes].forEach(a => { if (/^on/i.test(a.name)) el.removeAttribute(a.name); });
+      });
+      return d.innerHTML;
+    }
+
+    // ─── Rate limiter ───
+    function makeRL(ms) {
+      let last = 0;
+      return () => { const n = Date.now(); if (n - last < ms) return false; last = n; return true; };
+    }
+    const rlAduan = makeRL(30000);
+    const rlKontak = makeRL(15000);
+
+    // ─── Form Pengaduan ───
+    async function kirimPengaduan(e) {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+
+  try {
+    const response = await fetch('submit_pengaduan.php', {
+      method: 'POST',
+      body: formData
+    });
+    const result = await response.json();
+
+    if (result.status === 'success') {
+      document.getElementById('notif').innerHTML = 
+        `✓ Pengaduan terkirim! Nomor tiket Anda: <strong>${result.tiket}</strong>`;
+      e.target.reset();
+    } else {
+      alert('Gagal mengirim pengaduan.');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+    window.kirimPengaduan = kirimPengaduan;
+
+    // ─── PPID ───
+    function ajukanPPID(e) {
+      e.preventDefault();
+      const n = document.getElementById('pemohon').value.trim();
+      const el = document.getElementById('ppidNotif');
+      el.textContent = '✓ Permohonan ' + n + ' diterima. Cek email Anda.';
+      el.style.color = 'var(--ok)';
+      e.target.reset();
+    }
+    window.ajukanPPID = ajukanPPID;
+
+    // ─── Form Kontak ───
+    function kirimKontak(e) {
+      e.preventDefault();
+      const el = document.getElementById('kontakNotif');
+      if (!rlKontak()) { el.textContent = '⚠ Terlalu sering. Coba lagi sebentar.'; return; }
+      const nama = document.getElementById('cnama').value.trim();
+      el.innerHTML = '✓ Terima kasih, <strong>' + nama + '</strong>. Pesan Anda telah diterima.';
+      el.style.color = 'var(--ok)';
+      e.target.reset();
+    }
+    window.kirimKontak = kirimKontak;
+
+    // ─── Chart ───
+    function initChart() {
+      const cvs = document.getElementById('chartRekap');
+      if (!cvs || !window.Chart) return;
+      const palette = {
+        line: '#0a5c8a', fill: 'rgba(10,92,138,.1)'
+      };
+      const daily = {
+        labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+        datasets: [{ label: 'Pengaduan', data: [5, 7, 6, 8, 9, 4, 3], tension: .4, borderColor: palette.line, backgroundColor: palette.fill, fill: true, pointBackgroundColor: palette.line }]
+      };
+      const monthly = {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+        datasets: [{ label: 'Pengaduan', data: [40, 52, 48, 60, 71, 63, 58, 77, 66, 54, 49, 45], tension: .4, borderColor: palette.line, backgroundColor: palette.fill, fill: true, pointBackgroundColor: palette.line }]
+      };
+      const ctx = cvs.getContext('2d');
+      const chart = new Chart(ctx, {
+        type: 'line',
+        data: monthly,
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' } }, x: { grid: { display: false } } }
+        }
+      });
+      const btnD = document.getElementById('btnDaily');
+      const btnM = document.getElementById('btnMonthly');
+      function setTab(active, inactive, data) {
+        active.classList.add('active'); inactive.classList.remove('active');
+        chart.data = data; chart.update();
+      }
+      if (btnD) btnD.addEventListener('click', () => setTab(btnD, btnM, daily));
+      if (btnM) btnM.addEventListener('click', () => setTab(btnM, btnD, monthly));
+    }
+
+    // ─── Peta ───
+    function levelColor(l) {
+      return { 1: '#2e7d32', 2: '#7cb342', 3: '#f9a825', 4: '#fb8c00', 5: '#c62828' }[l] || '#7cb342';
+    }
+    function initMap() {
+      const el = document.getElementById('mapRawan');
+      if (!el || !window.L) return;
+      const map = L.map(el).setView([2.84, 117.37], 7);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+      const rawan = [
+        { name: 'Tanjung Selor', lat: 2.84, lon: 117.37, jenis: 'PKL', level: 3 },
+        { name: 'Tarakan', lat: 3.32, lon: 117.59, jenis: 'Ketertiban Umum', level: 4 },
+        { name: 'Malinau', lat: 3.57, lon: 116.62, jenis: 'Bangunan Liar', level: 2 },
+        { name: 'Nunukan', lat: 4.08, lon: 117.66, jenis: 'Perbatasan', level: 5 },
+        { name: 'Tana Tidung', lat: 3.45, lon: 117.03, jenis: 'Ketertiban Jalan', level: 2 }
+      ];
+      rawan.forEach(p => {
+        const c = levelColor(p.level);
+        L.circleMarker([p.lat, p.lon], { radius: 10, color: c, fillColor: c, fillOpacity: .75, weight: 2 })
+          .addTo(map)
+          .bindTooltip(`<b>${p.name}</b><br>Jenis: ${p.jenis}<br>Level: ${p.level}`);
+      });
+      const legend = L.control({ position: 'bottomright' });
+      legend.onAdd = function () {
+        const div = L.DomUtil.create('div');
+        div.style.cssText = 'background:#fff;padding:10px 12px;border-radius:10px;border:1px solid #e9ecef;font-size:13px;line-height:1.8';
+        div.innerHTML = '<b style="display:block;margin-bottom:4px">Kerawanan</b>' +
+          [1, 2, 3, 4, 5].map(l => `<span style="display:inline-block;width:11px;height:11px;background:${levelColor(l)};margin-right:7px;border-radius:3px;vertical-align:middle"></span>Level ${l}`).join('<br>');
+        return div;
+      };
+      legend.addTo(map);
+    }
+
+    // ─── QR ───
+    function initQR() {
+      const el = document.getElementById('qrAduan');
+      const link = document.getElementById('linkAduanAI');
+      const wa = document.getElementById('waNumber');
+      const aduanAIUrl = 'https://contoh.go.id/layanan-pengaduan-ai';
+      const waUrl = 'https://wa.me/6280000000000?text=Halo%20Satpol%20PP%20Kaltara%2C%20saya%20ingin%20mengajukan%20pengaduan.';
+      if (link) link.href = aduanAIUrl;
+      if (wa) wa.href = waUrl;
+      if (el && window.QRCode) new QRCode(el, { text: aduanAIUrl, width: 130, height: 130 });
+    }
+
+    // ─── Lacak ───
+    const tiketMock = {
+      'SP-ABC12': { status: 'Dalam Proses', riwayat: ['Dibuat 10/09 09:12', 'Diverifikasi 10/09 11:20', 'Diteruskan ke Bidang 10/09 13:05'] },
+      'SP-XYZ99': { status: 'Selesai', riwayat: ['Dibuat 05/09 10:01', 'Tindak lanjut 06/09 15:20', 'Selesai 07/09 09:30'] }
+    };
+    function lacakAduan(e) {
+      e.preventDefault();
+      const id = (document.getElementById('ticket').value || '').trim().toUpperCase();
+      const out = document.getElementById('hasilLacak');
+      const d = tiketMock[id];
+      if (d) {
+        const statusColor = d.status === 'Selesai' ? 'ok' : 'warn';
+        out.innerHTML = 'Status: <span class="badge ' + statusColor + '">' + d.status + '</span><ul>' + d.riwayat.map(x => '<li>' + x + '</li>').join('') + '</ul>';
+      } else {
+        out.textContent = 'Nomor tiket tidak ditemukan. Jika baru mengirim, tunggu 1–3 jam.';
+      }
+    }
+    window.lacakAduan = lacakAduan;
+
+    // ─── CMS ───
+    const cmsKeys = ['kataPengantar', 'latarBelakang', 'visiMisi', 'tupoksi', 'strukturOrg', 'profilPimpinan'];
+    function cmsLoad() {
+      cmsKeys.forEach(k => {
+        const el = document.querySelector(`[data-cms-key="${k}"]`);
+        if (el) { const s = localStorage.getItem('cms:' + k); if (s) el.innerHTML = s; }
+      });
+    }
+    function cmsSetEditable(on) {
+      cmsKeys.forEach(k => {
+        const el = document.querySelector(`[data-cms-key="${k}"]`);
+        if (el) { el.contentEditable = on ? 'true' : 'false'; el.style.outline = on ? '2px dashed var(--brand)' : 'none'; el.style.borderRadius = on ? '6px' : ''; el.style.padding = on ? '8px' : ''; }
+      });
+    }
+    function cmsSave() { cmsKeys.forEach(k => { const el = document.querySelector(`[data-cms-key="${k}"]`); if (el) localStorage.setItem('cms:' + k, sanitize(el.innerHTML)); }); alert('Tersimpan di browser. Untuk produksi gunakan CMS/DB.'); }
+    const editBtn = document.getElementById('toggleEdit');
+    const saveBtn = document.getElementById('saveCMS');
+    if (editBtn && saveBtn) {
+      cmsLoad();
+      let editing = false;
+      editBtn.addEventListener('click', () => {
+        editing = !editing;
+        cmsSetEditable(editing);
+        saveBtn.style.display = editing ? 'inline-flex' : 'none';
+        editBtn.textContent = editing ? '📖 Mode Baca' : '✏️ Mode Edit';
+      });
+      saveBtn.addEventListener('click', e => { e.preventDefault(); cmsSetEditable(false); cmsSave(); editing = false; saveBtn.style.display = 'none'; editBtn.textContent = '✏️ Mode Edit'; });
+    }
+
+    // ─── Login Modal ───
+    function initLoginModal() {
+      const openBtn = document.getElementById('loginBtn');
+      const modal = document.getElementById('loginModal');
+      const closeBtn = document.getElementById('closeLogin');
+      const emailEl = document.getElementById('loginEmail');
+      if (!openBtn || !modal) return;
+      function openModal() { modal.style.display = 'grid'; document.body.style.overflow = 'hidden'; openBtn.setAttribute('aria-expanded', 'true'); setTimeout(() => emailEl && emailEl.focus(), 50); }
+      function closeModal() { modal.style.display = 'none'; document.body.style.overflow = ''; openBtn.setAttribute('aria-expanded', 'false'); openBtn.focus(); }
+      openBtn.addEventListener('click', openModal);
+      if (closeBtn) closeBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+      document.addEventListener('keydown', e => { if (modal.style.display !== 'none' && e.key === 'Escape') closeModal(); });
+      const lf = document.getElementById('loginForm');
+      if (lf) lf.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const notif = document.getElementById('loginNotif');
+        const email = (document.getElementById('loginEmail')?.value || '').trim();
+        const pass = (document.getElementById('loginPass')?.value || '').trim();
+        if (!email || !pass) { notif.textContent = '⚠ Username dan kata sandi wajib diisi.'; notif.style.color = 'var(--danger)'; return; }
+        notif.textContent = '✓ Login berhasil. Mengalihkan...';
+        notif.style.color = 'var(--ok)';
+        setTimeout(() => { window.location.href = '/dashboard.html'; }, 800);
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initChart();
+      initMap();
+      initQR();
+      initLoginModal();
+    });
+  </script>
+</body>
+</html>

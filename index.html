@@ -1,9 +1,892 @@
-<!DOCTYPE html>
-<html>
-<body>
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Satpol PP – Portal Resmi</title>
+  <meta name="description" content="Template website sederhana & responsif untuk Satuan Polisi Pamong Praja. Termasuk profil, layanan pengaduan, berita, agenda, regulasi, PPID, dan kontak." />
+  <meta name="theme-color" content="#0a6aa1" />
+  <link rel="icon" href="kaltara-favicon-64.png" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    :root{
+      --brand:#0a6aa1;         /* hijau tua elegan */
+      --brand-2:#0c7ca8;       /* variasi */
+      --brand-3:#e6f2fa;       /* aksen muda */
+      --text:#1a1a1a;
+      --muted:#5a5a5a;
+      --bg:#ffffff;
+      --bg-2:#f6f8f7;
+      --danger:#b00020;
+      --warning:#a26d00;
+      --ok:#0b6e11;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;color:var(--text);background:var(--bg);line-height:1.5}
+    a{color:var(--brand);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .container{max-width:1200px;margin-inline:auto;padding:0 16px}
+    header.topbar{background:var(--brand);color:#fff}
+    header .top-inner{display:flex;align-items:center;gap:16px;padding:10px 0}
+    header img.logo{width:56px;height:56px;object-fit:contain}
+    .site-title{display:flex;flex-direction:column}
+    .site-title b{font-size:18px;letter-spacing:.2px}
+    .site-title small{opacity:.9}
 
-<h1 style="background-color: red;">Hello World!</h1>
-<p>This is a paragraph.</p>
+    nav.main{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid #e5e7eb}
+    nav .nav-inner{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:8px 0}
+    .nav-links{display:flex;gap:12px;flex-wrap:wrap}
+    .nav-links a{padding:8px 12px;border-radius:8px}
+    .nav-links a:hover{background:var(--brand-3)}
+    .nav-actions{display:flex;gap:8px;align-items:center}
+    .btn, button, input[type=submit]{background:var(--brand);color:#fff;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600}
+    .btn.secondary{background:#e9ecef;color:#111}
+    .btn.ghost{background:transparent;color:var(--brand);border:1px solid var(--brand)}
+    .btn.small{padding:6px 10px;border-radius:8px}
+
+    /* mobile nav */
+    .menu-btn{display:none}
+    @media (max-width:900px){
+      .menu-btn{display:inline-flex}
+      .nav-links{display:none}
+      .nav-links.open{display:flex;flex-direction:column;gap:0}
+      .nav-links a{border-radius:0}
+    }
+
+    /* hero */
+    .hero{background:linear-gradient(120deg, var(--brand) 0%, #0d7361 60%, #188a77 100%);color:#fff}
+    .hero .in{display:grid;grid-template-columns:1.1fr .9fr;gap:32px;padding:48px 0}
+    .hero h1{margin:0 0 10px;font-size:36px}
+    .hero p{margin:0 0 20px;color:#eaf8f5}
+    .hero .card{background:#0c5d4e;border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:16px}
+    .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .stat{background:#0e6b59;border-radius:10px;padding:12px;text-align:center}
+    .stat b{display:block;font-size:22px}
+    @media (max-width:900px){.hero .in{grid-template-columns:1fr}.stat-grid{grid-template-columns:repeat(3,1fr)}}
+
+    /* quick links */
+    .ql{background:var(--bg-2);padding:24px 0}
+    .ql h2{margin:0 0 12px}
+    .ql-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+    .ql .card{background:#fff;border:1px solid #edf0ee;border-radius:14px;padding:14px;display:flex;gap:12px;align-items:flex-start}
+    .icon{width:40px;height:40px;border-radius:10px;background:var(--brand-3);display:grid;place-items:center;font-weight:700;color:var(--brand)}
+    @media (max-width:900px){.ql-grid{grid-template-columns:1fr 1fr}}
+
+    /* sections */
+    section{padding:40px 0}
+    section h2{margin:0 0 14px;font-size:26px}
+    .lead{color:var(--muted)}
+
+    /* grid cards */
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+    .card{background:#fff;border:1px solid #e9ecef;border-radius:14px;overflow:hidden}
+    .card .p{padding:14px}
+    .chip{display:inline-block;background:var(--brand-3);color:var(--brand);padding:2px 8px;border-radius:999px;font-size:12px}
+    .muted{color:var(--muted);font-size:14px}
+
+    /* table */
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid #e9ecef;text-align:left}
+    th{background:#f5f7f6}
+
+    /* forms */
+    form{display:grid;gap:12px}
+    .row{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+    label{font-weight:600}
+    input,select,textarea{width:100%;padding:10px;border:1px solid #dfe4e2;border-radius:10px}
+    textarea{min-height:120px}
+    .hint{font-size:12px;color:var(--muted)}
+    @media (max-width:900px){.row{grid-template-columns:1fr}}
+
+    /* lists */
+    .list{display:grid;gap:10px}
+    .list li{display:flex;gap:10px}
+
+    /* footer */
+    footer{background:#0f2d29;color:#d6e6e3;margin-top:30px}
+    footer a{color:#c2f1e7}
+    footer .cols{display:grid;gap:20px;grid-template-columns:2fr 1fr 1fr}
+    footer .bottom{border-top:1px solid rgba(255,255,255,.1);margin-top:14px;padding:10px 0;font-size:14px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    @media (max-width:900px){footer .cols{grid-template-columns:1fr}}
+
+    /* utilities */
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    .flex{display:flex;gap:10px;align-items:center}
+    .right{margin-left:auto}
+    .pill{padding:6px 10px;background:var(--brand-3);border-radius:999px;color:var(--brand)}
+    .badge{font-size:12px;border:1px solid #dfe4e2;border-radius:999px;padding:2px 8px}
+    .shadow{box-shadow:0 8px 24px rgba(0,0,0,.06)}
+
+    /* high-contrast mode */
+    body.contrast{--brand:#000;--brand-2:#000;--brand-3:#fff;--bg:#fff;--bg-2:#fff;--text:#000}
+    body.contrast .card{border-color:#000}
+
+    /* print */
+    @media print{
+      nav, .hero, .ql, .nav-actions, .map, .actions{display:none !important}
+      section{page-break-inside:avoid}
+    }
+    /* modal */
+.modal-backdrop{
+  position:fixed; inset:0; background:rgba(0,0,0,.35);
+  display:grid; place-items:center; padding:16px; z-index:1000;
+}
+.modal{
+  width:min(420px, 100%);
+  background:#fff; border:1px solid #e9ecef; border-radius:14px; padding:16px;
+  box-shadow:0 20px 40px rgba(0,0,0,.15);
+}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+body.contrast .modal{border-color:#000}
+
+  </style>
+</head>
+<body>
+  <a class="sr-only" href="#main">Lewati ke konten utama</a>
+
+  <header class="topbar">
+    <div class="container top-inner">
+      <img class="logo" src="https://simpeg.kaltaraprov.go.id/logo/ori_prov_kaltara.png" alt="Lambang Provinsi Kalimantan Utara" />
+      <div class="site-title">
+        <b>Satuan Polisi Pamong Praja Provinsi Kalimantan Utara</b>
+        <small>Pemerintah Provinsi Kalimantan Utara — Portal Resmi</small>
+      </div>
+      
+    </div>
+  </header>
+
+  <nav class="main" aria-label="Navigasi utama">
+    <div class="container nav-inner">
+      <button class="btn secondary menu-btn" id="menuBtn" aria-expanded="false" aria-controls="navLinks">Menu</button>
+      <div class="nav-links" id="navLinks">
+        <a href="#beranda">Beranda</a>
+        <a href="#profil">Profil</a>
+        <a href="#layanan">Layanan</a>
+        <a href="#berita">Berita</a>
+        <a href="#agenda">Agenda</a>
+        <a href="#regulasi">Regulasi</a>
+        <a href="#ppid">PPID</a>
+        <a href="#kontak">Kontak</a>
+      </div>
+      <form class="nav-actions" role="search" onsubmit="searchSite(event)">
+        <label class="sr-only" for="q">Cari</label>
+        <input id="q" name="q" type="search" placeholder="Cari layanan/berita…" />
+        <button class="btn" type="submit">Cari</button>
+      </form>
+      <!-- Tambahan: Tombol Login -->
+<button class="btn ghost small" id="loginBtn" aria-haspopup="dialog" aria-controls="loginModal">
+  Masuk
+</button>
+    </div>
+  </nav>
+
+  <section id="beranda" class="hero" role="region" aria-label="Beranda">
+    <div class="container in">
+      <div>
+        <img src="IMG_7133.PNG" alt="Ilustrasi kegiatan Satpol PP" style="width:100%;border-radius:14px;margin-top:12px;" />
+      </div>
+      <div>
+        <div class="stat-grid">
+          <div class="stat shadow" aria-label="Jumlah operasi ketertiban bulan ini"><b id="s1">28</b><small>Operasi Bulan Ini</small></div>
+          <div class="stat shadow" aria-label="Jumlah pengaduan ditindak"><b id="s2">91%</b><small>Pengaduan Ditindak</small></div>
+          <div class="stat shadow" aria-label="Kepuasan layanan"><b id="s3">4.6/5</b><small>Skor Kepuasan</small></div>
+        </div>
+        <img src="IMG_3578.PNG" alt="Ilustrasi kegiatan Satpol PP" style="width:100%;border-radius:14px;margin-top:12px;" />
+      </div>
+    </div>
+  </section>
+
+  <section class="ql" aria-label="Tautan layanan cepat">
+    <div class="container">
+      <h2>Tautan Cepat</h2>
+      <div class="ql-grid">
+        <a class="card" href="#pengaduan">
+          <div class="icon">!</div>
+          <div>
+            <b>Pengaduan Masyarakat</b>
+            <div class="muted">Laporkan pelanggaran Perda/Perkada dengan mudah.</div>
+          </div>
+        </a>
+        <a class="card" href="#layanan">
+          <div class="icon">📅</div>
+          <div>
+            <b>Jadwal Penertiban</b>
+            <div class="muted">Lihat agenda operasi ketertiban terkini.</div>
+          </div>
+        </a>
+        <a class="card" href="#regulasi">
+          <div class="icon">§</div>
+          <div>
+            <b>Dasar Hukum</b>
+            <div class="muted">Perda, Pergub/Bupati/Walikota terkait tugas Satpol PP.</div>
+          </div>
+        </a>
+        <a class="card" href="#ppid">
+          <div class="icon">ℹ️</div>
+          <div>
+            <b>PPID</b>
+            <div class="muted">Akses informasi publik & layanan keberatan.</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <main id="main" class="container">
+    <!-- DASHBOARD: Rekap & Peta Rawan -->
+    <section id="dashboard" aria-label="Ringkasan Trantibum">
+      <h2>Ringkasan Trantibum</h2>
+      <div class="grid-2">
+        <div class="card shadow">
+          <div class="p">
+            <div class="flex" style="justify-content:space-between;align-items:center">
+              <b>Rekap Pengaduan</b>
+              <div class="flex">
+                <button class="btn small" id="btnDaily">Harian</button>
+                <button class="btn small" id="btnMonthly">Bulanan</button>
+              </div>
+            </div>
+            <canvas id="chartRekap" height="200" aria-label="Grafik rekap pengaduan"></canvas>
+            <div class="hint">Sumber: internal Satpol PP Kaltara</div>
+          </div>
+        </div>
+        <div class="card shadow">
+          <div class="p">
+            <b>Peta Rawan Pelanggaran</b>
+            <div id="mapRawan" style="height:360px;border-radius:12px;overflow:hidden"></div>
+            <div class="hint">Level kerawanan 1–5 (hijau→kuning→merah). Sumber: layanan aduan/satpolpp kab/kota/kepolisian.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="profil" aria-label="Profil Satpol PP">
+      <h2>Profil</h2>
+      <p class="lead">Ringkasan tugas, fungsi, dan struktur organisasi Satpol PP Provinsi Kalimantan Utara.</p>
+      <div class="grid-3">
+        <div class="card">
+          <div class="p">
+            <b>Tugas</b>
+            <ul class="list">
+              <li>Menegakkan Peraturan Daerah dan Peraturan Kepala Daerah.</li>
+              <li>Menyelenggarakan ketertiban umum dan ketentraman masyarakat.</li>
+              <li>Menyelenggarakan perlindungan masyarakat.</li>
+            </ul>
+            <div class="hint">*Isi sesuai regulasi/struktur di daerah Anda.</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="p">
+            <b>Fungsi</b>
+            <ul class="list">
+              <li>Perumusan kebijakan penegakan Perda/Perkada.</li>
+              <li>Pemeliharaan ketertiban umum dan ketentraman.</li>
+              <li>Pelaksanaan koordinasi, pembinaan, dan pengawasan.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="p">
+            <b>Struktur Organisasi (Ringkas)</b>
+            <table aria-label="Struktur organisasi">
+              <tr><th>Jabatan</th><th>Nama</th></tr>
+              <tr><td>Kepala Satpol PP</td><td>—</td></tr>
+              <tr><td>Sekretariat</td><td>—</td></tr>
+              <tr><td>Bidang Penegakan Perda</td><td>—</td></tr>
+              <tr><td>Bidang Trantibumlinmas</td><td>—</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profil Lengkap + CMS ringan -->
+      <div class="card" style="margin-top:16px">
+        <div class="p">
+          <div class="flex" style="justify-content:space-between;align-items:center">
+            <b>Profil Lengkap</b>
+            <div class="flex">
+              <button class="btn small" id="toggleEdit">Mode Edit</button>
+              <button class="btn small" id="saveCMS" style="display:none">Simpan</button>
+            </div>
+          </div>
+          <nav aria-label="Submenu Profil" style="margin:10px 0;display:flex;gap:8px;flex-wrap:wrap">
+            <a class="pill" href="#kata-pengantar">Kata Pengantar</a>
+            <a class="pill" href="#latar-belakang">Latar Belakang</a>
+            <a class="pill" href="#visi-misi">Visi Misi</a>
+            <a class="pill" href="#tupoksi">Tupoksi</a>
+            <a class="pill" href="#struktur">Struktur Organisasi</a>
+            <a class="pill" href="#pimpinan">Profil Pimpinan</a>
+          </nav>
+          <article id="kata-pengantar" class="cms" data-cms-key="kataPengantar"><h3>Kata Pengantar</h3><p>Isi kata pengantar di sini…</p></article>
+          <article id="latar-belakang" class="cms" data-cms-key="latarBelakang"><h3>Latar Belakang</h3><p>Uraikan dasar pembentukan, konteks daerah, dan peran Satpol PP Kaltara.</p></article>
+          <article id="visi-misi" class="cms" data-cms-key="visiMisi"><h3>Visi Gubernur Kalimantan Utara</h3><p> 
+"Terwujudnya Fondasi Transformasi Kalimantan Utara yang Kokoh sebagai Beranda Depan NKRI yang Maju, Makmur, dan Berkelanjutan."</p></article>
+<article id="visi-misi" class="cms" data-cms-key="visiMisi"><h3>Misi Gubernur Kalimantan Utara</h3><ul>
+    <li>Transformasi Sosial: Mewujudkan transformasi sosial yang inklusif dan berkeadilan melalui penguatan ketahanan sosial dan kualitas sumber daya manusia.</li>
+    <li>
+
+Transformasi Ekonomi: Mewujudkan transformasi ekonomi daerah yang berkelanjutan, merata, dan inklusif dengan mengoptimalkan potensi sumber daya alam.</li>
+    <li>
+
+Transformasi Tata Kelola: Mewujudkan tata kelola pemerintahan yang kolaboratif, inovatif, bersih, berwibawa, dan melayani.</li>
+    <li>
+
+Supremasi Hukum dan Stabilitas: Memantapkan supremasi hukum dan stabilitas daerah sebagai beranda depan NKRI guna menjamin keamanan, ketertiban, dan ketenteraman masyarakat.</li>
+    <li>
+
+Ketahanan Budaya dan Ekologi: Memantapkan ketahanan sosial budaya, kearifan lokal, serta pengelolaan lingkungan hidup secara berkelanjutan.</li>
+    <li>
+
+Pembangunan Wilayah Merata: Memantapkan pembangunan wilayah yang merata dan berkeadilan, terutama di kawasan perbatasan dan pulau-pulau kecil terluar.</li>
+    <li>
+
+Infrastruktur Berkualitas: Memantapkan sarana dan prasarana (konektivitas) yang berkualitas dan ramah lingkungan di seluruh wilayah Kaltara.</li>
+    <li>
+
+Keselarasan Pembangunan: Mewujudkan keseimbangan pembangunan Kalimantan Utara untuk mengawal pencapaian Indonesia Emas.</li>
+    </ul>
+    </article>
+          <article id="tupoksi" class="cms" data-cms-key="tupoksi"><h3>Implementasi Strategis Mendukung Misi Gubernur</h3><p style="text-align: justify;">Sebagai garda terdepan di Beranda Depan NKRI, Satuan Polisi Pamong Praja Provinsi Kalimantan Utara berperan strategis dalam mengejawantahkan Misi ke-4 Gubernur Kalimantan Utara, yakni memantapkan supremasi hukum dan stabilitas daerah. Melalui penegakan Peraturan Daerah yang konsisten serta penyelenggaraan ketertiban umum yang preventif dan humanis, kami berkomitmen menciptakan iklim wilayah yang aman, tertib, dan kondusif. Hal ini merupakan pondasi krusial bagi keberlanjutan transformasi pembangunan di Bumi Benuanta, guna menjamin rasa tenteram bagi seluruh masyarakat sekaligus memperkokoh marwah dan wibawa pemerintah di wilayah perbatasan negara.</p></article>
+          <article id="struktur" class="cms" data-cms-key="strukturOrg"><h3>Struktur Organisasi</h3><p>Tambahkan bagan/daftar jabatan dan unit kerja.</p></article>
+          <article id="pimpinan" class="cms" data-cms-key="profilPimpinan"><h3>Profil Pimpinan</h3><p>Foto & bio pimpinan Satpol PP.</p></article>
+          <div class="hint">Mode Edit menyimpan perubahan di <i>browser</i> (sementara). Untuk produksi sambungkan ke CMS/DB.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="layanan" aria-label="Layanan Satpol PP">
+      <h2>Layanan</h2>
+      <div class="grid-2">
+        <!-- Form Pengaduan -->
+        <div class="card" id="pengaduan">
+          <div class="p">
+            <b>Form Pengaduan</b>
+            <form id="formPengaduan" onsubmit="kirimPengaduan(event)">
+              <div class="row">
+                <div>
+                  <label for="nama">Nama</label>
+                  <input id="nama" name="nama" required />
+                </div>
+                <div>
+                  <label for="kontak">Kontak (Email/HP)</label>
+                  <input id="kontak" name="kontak" type="email" placeholder="nama@contoh.go.id" />
+                </div>
+              </div>
+              <div class="row">
+                <div>
+                  <label for="lokasi">Lokasi Kejadian</label>
+                  <input id="lokasi" name="lokasi" placeholder="Alamat/koordinat" required />
+                </div>
+                <div>
+                  <label for="kategori">Kategori</label>
+                  <select id="kategori" name="kategori" required>
+                    <option value="">— Pilih —</option>
+                    <option>Pelanggaran Perda</option>
+                    <option>Gangguan Ketertiban</option>
+                    <option>Ketentraman Masyarakat</option>
+                    <option>Perlindungan Masyarakat</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label for="uraian">Uraian Kejadian</label>
+                <textarea id="uraian" name="uraian" required></textarea>
+              </div>
+              <div>
+                <label for="lampiran">Lampiran (opsional)</label>
+                <input id="lampiran" name="lampiran" type="file" />
+                <div class="hint">Format: foto/video bukti. *Integrasikan ke DMS/drive Anda.</div>
+              </div>
+              <div class="row">
+                <div>
+                  <label for="captcha">Captcha</label>
+                  <input id="captcha" name="captcha" placeholder="2 + 3 = ?" required />
+                </div>
+                <div class="flex" style="align-items:flex-end">
+                  <input type="submit" class="btn" value="Kirim Pengaduan" />
+                  <span id="notif" class="muted"></span>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Jadwal -->
+        <div class="card">
+          <div class="p">
+            <b>Jadwal & Operasi</b>
+            <ul class="list" id="agendaListMini">
+              <li><span class="badge">10 Sep</span> Operasi penertiban reklame</li>
+              <li><span class="badge">14 Sep</span> Patroli gabungan kawasan pasar</li>
+              <li><span class="badge">18 Sep</span> Simulasi linmas & mitigasi bencana</li>
+            </ul>
+            <div style="margin-top:10px"><a class="btn ghost" href="#agenda">Lihat Semua Agenda</a></div>
+          </div>
+        </div>
+
+        <!-- QR & WhatsApp -->
+        <div class="card">
+          <div class="p">
+            <b>Barcode Layanan Pengaduan AI</b>
+            <div id="qrAduan" style="width:160px;height:160px"></div>
+            <div class="muted">Scan untuk membuka asisten pengaduan AI.</div>
+            <div style="margin-top:8px"><a class="btn ghost" id="linkAduanAI" href="#" target="_blank" rel="noopener">Buka tautan</a></div>
+            <hr style="margin:12px 0;border:none;border-top:1px solid #e9ecef"/>
+            <b>WhatsApp</b>
+            <p class="lead">Nomor: <a id="waNumber" href="https://wa.me/6280000000000" target="_blank" rel="noopener">+62 800-0000-0000</a></p>
+          </div>
+        </div>
+
+        <!-- Lacak Pengaduan -->
+        <div class="card">
+          <div class="p">
+            <b>Lacak Pengaduan</b>
+            <form onsubmit="lacakAduan(event)">
+              <label for="ticket">Nomor Tiket</label>
+              <input id="ticket" placeholder="contoh: SP-ABC12" required />
+              <input type="submit" class="btn" value="Lacak" />
+            </form>
+            <div id="hasilLacak" class="muted" style="margin-top:8px"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="berita" aria-label="Berita & Informasi">
+      <h2>Berita</h2>
+      <p class="lead">Informasi kegiatan, rilis penertiban, dan edukasi masyarakat.</p>
+      <div class="grid-3" id="newsGrid">
+        <article class="card shadow">
+          <img loading="lazy" src="https://placehold.co/640x360/jpg" alt="Kegiatan operasi" />
+          <div class="p">
+            <div class="chip">Rilis</div>
+            <h3 style="margin:6px 0 4px">Operasi Ketertiban Kawasan Niaga</h3>
+            <div class="muted">09 Sep 2025 • Bidang Penegakan</div>
+          </div>
+        </article>
+        <article class="card shadow">
+          <img loading="lazy" src="https://placehold.co/640x360/jpg" alt="Edukasi masyarakat" />
+          <div class="p">
+            <div class="chip">Edukasi</div>
+            <h3 style="margin:6px 0 4px">Sosialisasi Tertib Usaha bagi PKL</h3>
+            <div class="muted">05 Sep 2025 • Sekretariat</div>
+          </div>
+        </article>
+        <article class="card shadow">
+          <img loading="lazy" src="https://placehold.co/640x360/jpg" alt="Koordinasi lintas perangkat daerah" />
+          <div class="p">
+            <div class="chip">Kolaborasi</div>
+            <h3 style="margin:6px 0 4px">Patroli Gabungan dengan Perangkat Daerah</h3>
+            <div class="muted">31 Agu 2025 • Trantibumlinmas</div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="agenda" aria-label="Agenda Kegiatan">
+      <h2>Agenda</h2>
+      <table>
+        <thead><tr><th>Tanggal</th><th>Kegiatan</th><th>Lokasi</th><th>Penanggung Jawab</th></tr></thead>
+        <tbody>
+          <tr><td>10 Sep 2025</td><td>Operasi penertiban reklame</td><td>Koridor Utama</td><td>Bidang Penegakan</td></tr>
+          <tr><td>14 Sep 2025</td><td>Patroli gabungan pasar</td><td>Pasar Induk</td><td>Trantibum</td></tr>
+          <tr><td>18 Sep 2025</td><td>Simulasi linmas</td><td>Alun-alun</td><td>Perlinmas</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section aria-label="Statistik & Kinerja">
+      <h2>Statistik Kinerja</h2>
+      <div class="grid-3">
+        <div class="card"><div class="p"><b>Pengaduan Masuk</b><div class="lead"><b id="stA">120</b> tahun berjalan</div></div></div>
+        <div class="card"><div class="p"><b>Tindak Lanjut</b><div class="lead"><b id="stB">109</b> selesai • <b id="stB2">11</b> proses</div></div></div>
+        <div class="card"><div class="p"><b>Operasi Ketertiban</b><div class="lead"><b id="stC">86</b> kegiatan</div></div></div>
+      </div>
+    </section>
+
+    <section id="regulasi" aria-label="Regulasi">
+      <h2>Regulasi</h2>
+      <div class="grid-2">
+        <div class="card"><div class="p">
+          <b>Peraturan Daerah</b>
+          <ul class="list">
+            <li>Perda No. x Tahun xxxx tentang Ketertiban Umum</li>
+            <li>Perda No. y Tahun yyyy tentang Retribusi Pemakaian Kekayaan Daerah</li>
+          </ul>
+        </div></div>
+        <div class="card"><div class="p">
+          <b>Peraturan Kepala Daerah</b>
+          <ul class="list">
+            <li>Peraturan Gubernur/Bupati/Walikota No. … Tahun … tentang Penjabaran Tugas Satpol PP</li>
+            <li>Keputusan Kepala Daerah tentang Pembentukan Tim Operasi</li>
+          </ul>
+        </div></div>
+      </div>
+      <div class="hint">*Isi daftar sesuai ketentuan di daerah Anda. Sediakan pranala ke dokumen PDF resmi.</div>
+    </section>
+
+    <section id="ppid" aria-label="PPID & Keterbukaan Informasi">
+      <h2>PPID</h2>
+      <div class="grid-2">
+        <div class="card"><div class="p">
+          <b>Informasi Berkala</b>
+          <ul class="list">
+            <li>Profil, tugas & fungsi</li>
+            <li>Program dan kegiatan</li>
+            <li>Ringkasan RKPD/Renja yang terkait Satpol PP</li>
+            <li>Daftar regulasi dan SOP</li>
+          </ul>
+        </div></div>
+        <div class="card"><div class="p">
+          <b>Permohonan Informasi</b>
+          <p>Ajukan permohonan informasi publik melalui formulir berikut.</p>
+          <form onsubmit="ajukanPPID(event)">
+            <label for="info">Rincian Informasi</label>
+            <textarea id="info" required></textarea>
+            <div class="row">
+              <div>
+                <label for="pemohon">Nama Pemohon</label>
+                <input id="pemohon" required />
+              </div>
+              <div>
+                <label for="email">Email</label>
+                <input id="email" type="email" required />
+              </div>
+            </div>b
+            <input type="submit" class="btn" value="Ajukan" />
+            <span id="ppidNotif" class="muted"></span>
+          </form>
+        </div></div>
+      </div>
+    </section>
+
+    <section id="kontak" aria-label="Kontak">
+      <h2>Hubungi Kami</h2>
+      <div class="grid-2">
+        <div class="card"><div class="p">
+          <b>Alamat</b>
+          <p>Jalan H. Masykur No. 019 Tanjung Selor, Kode Pos 77212<br>Telepon (0552) 2036660 • Email: satuanppprovkaltara@gmail.com</p>
+          
+        </div></div>
+        <div class="card map"><div class="p">
+          <b>Peta Lokasi</b>
+          <div style="aspect-ratio:16/9;border-radius:8px;overflow:hidden">
+            <iframe title="Peta Kantor Satpol PP Kaltara" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5525.955934651934!2d117.3626237!3d2.8409180000000003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3213cf6cdd0efe99%3A0x16f114bc2cab4cb0!2sKantor%20Polisi%20Pamong%20Praja!5e1!3m2!1sen!2sid!4v1778536642748!5m2!1sen!2sid" style="border:0;width:100%;height:100%" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+        </div></div>
+        <div class="card"><div class="p">
+          <b>Form Kontak</b>
+          <form id="contactForm" onsubmit="kirimKontak(event)">
+            <div class="row">
+              <div><label for="cnama">Nama</label><input id="cnama" required /></div>
+              <div><label for="cemail">Email</label><input id="cemail" type="email" required /></div>
+            </div>
+            <label for="cpesan">Pesan</label>
+            <textarea id="cpesan" required></textarea>
+            <input type="submit" class="btn" value="Kirim" /> <span id="kontakNotif" class="muted"></span>
+          </form>
+        </div></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="cols">
+        <div>
+          <b>Satuan Polisi Pamong Praja</b>
+          <p>Portal resmi informasi, layanan pengaduan, dan edukasi ketertiban umum & ketentraman masyarakat.</p>
+          <div class="flex"><a href="#ppid" class="pill">PPID</a><a href="#regulasi" class="pill">Regulasi</a><a href="#agenda" class="pill">Agenda</a></div>
+        </div>
+        <div>
+          <b>Navigasi</b>
+          <ul class="list" style="list-style:none;padding:0;margin:0">
+            <li><a href="#profil">Profil</a></li>
+            <li><a href="#layanan">Layanan</a></li>
+            <li><a href="#berita">Berita</a></li>
+            <li><a href="#kontak">Kontak</a></li>
+          </ul>
+        </div>
+        <div>
+          <b>Dokumen</b>
+          <ul class="list" style="list-style:none;padding:0;margin:0">
+            <li><a href="#">SOP Penertiban (PDF)</a></li>
+            <li><a href="#">Maklumat Pelayanan (PDF)</a></li>
+            <li><a href="#">Standar Layanan (PDF)</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="bottom">
+        <span>© <span id="year"></span> Satpol PP. Seluruh hak cipta.</span>
+        <a href="#" aria-label="Kebijakan privasi">Kebijakan Privasi</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script>
+    // ==== util: tahun
+    const yearEl = document.getElementById('year');
+    if(yearEl) yearEl.textContent = new Date().getFullYear();
+
+    // ==== mobile nav
+    const menuBtn = document.getElementById('menuBtn');
+    const navLinks = document.getElementById('navLinks');
+    if(menuBtn){
+      menuBtn.addEventListener('click',()=>{
+        const open = navLinks.classList.toggle('open');
+        menuBtn.setAttribute('aria-expanded', open?'true':'false');
+      });
+    }
+
+    // ==== accessibility toggles
+    const contrastBtn = document.getElementById('contrastBtn');
+    const fontUp = document.getElementById('fontUp');
+    const fontDown = document.getElementById('fontDown');
+    let fontScale = 100;
+    if(contrastBtn){
+      contrastBtn.addEventListener('click',()=>{
+        const on = !document.body.classList.contains('contrast');
+        document.body.classList.toggle('contrast');
+        contrastBtn.setAttribute('aria-pressed', on?'true':'false');
+      });
+    }
+    if(fontUp){fontUp.addEventListener('click',()=>{fontScale=Math.min(140,fontScale+10);document.documentElement.style.fontSize=fontScale+'%';});}
+    if(fontDown){fontDown.addEventListener('click',()=>{fontScale=Math.max(90,fontScale-10);document.documentElement.style.fontSize=fontScale+'%';});}
+
+    // ==== pencarian dummy berita
+    function searchSite(e){
+      e.preventDefault();
+      const val = (document.getElementById('q').value||'').toLowerCase();
+      const grid = document.getElementById('newsGrid');
+      if(!grid) return;
+      [...grid.children].forEach(card=>{
+        const txt = card.textContent.toLowerCase();
+        card.style.display = txt.includes(val)?'block':'none';
+      });
+    }
+    window.searchSite = searchSite;
+
+    // ==== sanitizer sederhana (tanpa regex backslash)
+    function sanitize(html){
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = html;
+      wrapper.querySelectorAll('script').forEach(s=>s.remove());
+      wrapper.querySelectorAll('*').forEach(el=>{ [...el.attributes].forEach(a=>{ if(/^on/i.test(a.name)) el.removeAttribute(a.name); }); });
+      return wrapper.innerHTML;
+    }
+
+    // ==== rate limiter sederhana
+    function makeRateLimiter(ms){ let last=0; return ()=>{ const now=Date.now(); if(now-last<ms) return false; last=now; return true; }; }
+    const rlAduan = makeRateLimiter(30000); // 30 detik
+    const rlKontak = makeRateLimiter(15000);
+
+    // ==== form pengaduan (mock + limit + captcha)
+    function kirimPengaduan(e){
+      e.preventDefault();
+      const notif = document.getElementById('notif');
+      if(!rlAduan()){ notif.textContent='Terlalu sering. Coba lagi setelah 30 detik.'; notif.style.color='var(--warning)'; return; }
+      const ok = (document.getElementById('captcha').value||'').trim()==='5';
+      if(!ok){notif.textContent='Captcha salah (petunjuk: 2 + 3).';notif.style.color='var(--danger)';return}
+      notif.textContent='Terkirim. Nomor tiket: SP-'+(Math.random()+1).toString(36).substring(2,7).toUpperCase();
+      notif.style.color='var(--ok)';
+      e.target.reset();
+    }
+    window.kirimPengaduan = kirimPengaduan;
+
+    // ==== PPID (mock)
+    function ajukanPPID(e){
+      e.preventDefault();
+      const n = document.getElementById('pemohon').value.trim();
+      const el = document.getElementById('ppidNotif');
+      el.textContent = 'Permohonan '+n+' diterima. Cek email untuk tindak lanjut.';
+      e.target.reset();
+    }
+    window.ajukanPPID = ajukanPPID;
+
+    // ==== Form Kontak (mock)
+    function kirimKontak(e){
+      e.preventDefault();
+      const el = document.getElementById('kontakNotif');
+      if(!rlKontak()){el.textContent='Terlalu sering. Coba lagi sebentar lagi.';return}
+      const nama = document.getElementById('cnama').value.trim();
+      const email = document.getElementById('cemail').value.trim();
+      const pesan = document.getElementById('cpesan').value.trim();
+      el.textContent = 'Terima kasih, '+nama+'. Pesan Anda telah tercatat.';
+      e.target.reset();
+    }
+    window.kirimKontak = kirimKontak;
+
+    // ==== Chart Rekap (harian/bulanan)
+    function initChart(){
+      const cvs = document.getElementById('chartRekap');
+      if(!cvs || !window.Chart) return;
+      const daily = {labels:['Sen','Sel','Rab','Kam','Jum','Sab','Min'], datasets:[{label:'Pengaduan', data:[5,7,6,8,9,4,3], tension:.3}]};
+      const monthly = {labels:['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'], datasets:[{label:'Pengaduan', data:[40,52,48,60,71,63,58,77,66,54,49,45], tension:.3}]};
+      const ctx = cvs.getContext('2d');
+      const chart = new Chart(ctx, {type:'line', data: monthly, options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}});
+      const btnDaily = document.getElementById('btnDaily');
+      const btnMonthly = document.getElementById('btnMonthly');
+      if(btnDaily){btnDaily.addEventListener('click',()=>{ chart.data = daily; chart.update(); });}
+      if(btnMonthly){btnMonthly.addEventListener('click',()=>{ chart.data = monthly; chart.update(); });}
+    }
+
+    // ==== Peta Rawan (Leaflet + contoh data)
+    function levelColor(l){ return {1:'#2e7d32',2:'#7cb342',3:'#f9a825',4:'#fb8c00',5:'#c62828'}[l]||'#7cb342'; }
+    function initMap(){
+      const el = document.getElementById('mapRawan');
+      if(!el || !window.L) return;
+      const map = L.map(el).setView([2.84,117.37], 7);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap' }).addTo(map);
+      const rawan = [
+        {name:'Tanjung Selor', lat:2.84, lon:117.37, jenis:'PKL', level:3},
+        {name:'Tarakan', lat:3.32, lon:117.59, jenis:'Ketertiban Umum', level:4},
+        {name:'Malinau', lat:3.57, lon:116.62, jenis:'Bangunan Liar', level:2},
+        {name:'Nunukan', lat:4.08, lon:117.66, jenis:'Perbatasan', level:5},
+        {name:'Tana Tidung', lat:3.45, lon:117.03, jenis:'Ketertiban Jalan', level:2}
+      ];
+      rawan.forEach(p=>{
+        const c = levelColor(p.level);
+        L.circleMarker([p.lat,p.lon],{radius:8,color:c,fillColor:c,fillOpacity:.7,weight:2})
+          .addTo(map)
+          .bindTooltip(`<b>${p.name}</b><br>Jenis: ${p.jenis}<br>Level: ${p.level}`);
+      });
+      const legend = L.control({position:'bottomright'});
+      legend.onAdd = function(){
+        const div = L.DomUtil.create('div','legend');
+        div.style.background = '#fff'; div.style.padding='8px'; div.style.borderRadius='8px'; div.style.border='1px solid #e9ecef';
+        div.innerHTML = '<b>Kerawanan</b><br>'+
+          [1,2,3,4,5].map(l=>`<span style="display:inline-block;width:10px;height:10px;background:${levelColor(l)};margin-right:6px;border-radius:2px"></span>${l}`).join('<br>');
+        return div;
+      };
+      legend.addTo(map);
+    }
+
+    // ==== QR Layanan & WhatsApp
+    function initQR(){
+      const el = document.getElementById('qrAduan');
+      const link = document.getElementById('linkAduanAI');
+      const wa = document.getElementById('waNumber');
+      const aduanAIUrl = 'https://contoh.go.id/layanan-pengaduan-ai'; // TODO: ganti dengan URL resmi
+      const waUrl = 'https://wa.me/6280000000000?text=Halo%20Satpol%20PP%20Kaltara%2C%20saya%20ingin%20mengajukan%20pengaduan.'; // TODO: ganti nomor WA
+      if(link) link.href = aduanAIUrl;
+      if(wa) wa.href = waUrl;
+      if(el && window.QRCode){ new QRCode(el, { text: aduanAIUrl, width: 160, height: 160 }); }
+    }
+
+    // ==== Lacak Pengaduan (mock)
+    const tiketMock = {
+      'SP-ABC12': {status:'Dalam Proses', riwayat:['Dibuat 10/09 09:12','Diverifikasi 10/09 11:20','Diteruskan ke Bidang 10/09 13:05']},
+      'SP-XYZ99': {status:'Selesai', riwayat:['Dibuat 05/09 10:01','Tindak lanjut 06/09 15:20','Selesai 07/09 09:30']}
+    };
+    function lacakAduan(e){
+      e.preventDefault();
+      const id = (document.getElementById('ticket').value||'').trim().toUpperCase();
+      const out = document.getElementById('hasilLacak');
+      const d = tiketMock[id];
+      if(d){ out.innerHTML = 'Status: <b>'+d.status+'</b><br><ul>'+d.riwayat.map(x=>'<li>'+x+'</li>').join('')+'</ul>'; }
+      else{ out.textContent = 'Nomor tiket tidak ditemukan. Jika baru mengirim, tunggu 1–3 jam untuk sinkron.'; }
+    }
+    window.lacakAduan = lacakAduan;
+
+    // ==== CMS ringan (Profil & PPID)
+    const cmsKeys = ['kataPengantar','latarBelakang','visiMisi','tupoksi','strukturOrg','profilPimpinan'];
+    function cmsLoad(){
+      cmsKeys.forEach(k=>{ const el=document.querySelector(`[data-cms-key="${k}"]`); if(el){ const saved=localStorage.getItem('cms:'+k); if(saved){ el.innerHTML = saved; } }});
+    }
+    function cmsSetEditable(on){
+      cmsKeys.forEach(k=>{ const el=document.querySelector(`[data-cms-key="${k}"]`); if(el){ el.contentEditable = on?'true':'false'; el.style.outline = on?'2px dashed var(--brand)':'none'; }});
+    }
+    function cmsSave(){ cmsKeys.forEach(k=>{ const el=document.querySelector(`[data-cms-key="${k}"]`); if(el){ localStorage.setItem('cms:'+k, sanitize(el.innerHTML)); }}); alert('Tersimpan di browser. Untuk produksi gunakan CMS/DB.'); }
+    const editBtn = document.getElementById('toggleEdit');
+    const saveBtn = document.getElementById('saveCMS');
+    if(editBtn && saveBtn){
+      cmsLoad();
+      let editing=false;
+      editBtn.addEventListener('click',()=>{ editing=!editing; cmsSetEditable(editing); saveBtn.style.display = editing?'inline-flex':'none'; editBtn.textContent = editing?'Mode Baca':'Mode Edit'; });
+      saveBtn.addEventListener('click', (e)=>{ e.preventDefault(); cmsSetEditable(false); cmsSave(); editing=false; saveBtn.style.display='none'; editBtn.textContent='Mode Edit'; });
+    }
+// ==== Login modal (DOM siap)
+function initLoginModal(){
+  const openBtn = document.getElementById('loginBtn');
+  const modal   = document.getElementById('loginModal');
+  const closeBtn= document.getElementById('closeLogin');
+  const emailEl = document.getElementById('loginEmail');
+
+  if(!openBtn || !modal) return;
+
+  function openModal(){
+    modal.style.display = 'grid';
+    document.body.style.overflow = 'hidden';
+    openBtn.setAttribute('aria-expanded','true');
+    setTimeout(()=>emailEl && emailEl.focus(), 50);
+  }
+  function closeModal(){
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+    openBtn.setAttribute('aria-expanded','false');
+    openBtn.focus();
+  }
+
+  openBtn.addEventListener('click', openModal);
+  if(closeBtn) closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(); });
+  document.addEventListener('keydown', (e)=>{ if(modal.style.display!=='none' && e.key==='Escape') closeModal(); });
+
+  // handler login (mock)
+  window.handleLogin = function(e){
+    e.preventDefault();
+    const notif = document.getElementById('loginNotif');
+    const email = (document.getElementById('loginEmail')?.value||'').trim();
+    const pass  = (document.getElementById('loginPass')?.value||'').trim();
+
+    if(!email || !pass){
+      notif.textContent = 'Email dan kata sandi wajib diisi.';
+      notif.style.color = 'var(--danger)';
+      return;
+    }
+    notif.textContent = 'Login berhasil. Mengalihkan...';
+    notif.style.color = 'var(--ok)';
+    setTimeout(()=>{ window.location.href = '/dashboard.html'; }, 700);
+  };
+}
+
+// panggil semua init saat DOM siap
+window.addEventListener('DOMContentLoaded', ()=>{
+  initChart(); 
+  initMap(); 
+  initQR(); 
+  initLoginModal(); // <— tambahkan ini
+});
+  </script>
+  <!-- Modal Login -->
+<div class="modal-backdrop" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="loginTitle" style="margin:0">Masuk</h3>
+      <button class="btn small secondary" id="closeLogin" aria-label="Tutup">Tutup</button>
+    </div>
+    <form id="loginForm" action="auth.php" method="POST">
+      <label for="loginEmail">Username</label>
+      <input id="loginEmail" type="username" name="username" autocomplete="username"  required />
+
+      <label for="loginPass">Password</label>
+      <input id="loginPass" type="password" name="password" autocomplete="current-password" required />
+
+      <div class="flex" style="justify-content:space-between">
+        <label class="flex" style="gap:6px"><input type="checkbox" id="rememberMe" /> Ingat saya</label>
+        <a href="#" class="muted">Lupa kata sandi?</a>
+      </div>
+
+      <input type="submit" class="btn" value="Masuk" />
+      <div id="loginNotif" class="hint" style="margin-top:8px"></div>
+    </form>
+  </div>
+</div>
 
 </body>
 </html>

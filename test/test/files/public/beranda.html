@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Satpol PP – Portal Resmi Kalimantan Utara</title>
+  <meta name="description" content="Portal resmi Satuan Polisi Pamong Praja Provinsi Kalimantan Utara." />
+  <meta name="theme-color" content="#0a5c8a" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --brand:       #0a5c8a; --brand-mid:   #0e7bb5; --brand-light: #d6edf7; --brand-xlight:#edf6fb;
+      --gold:        #c9922a; --gold-light:  #fdf3e3;
+      --text:        #12213a; --text-soft:   #4a5f78; --border:      #dce8f0;
+      --bg:          #ffffff; --bg-2:        #f4f8fb; --bg-3:        #e8f2f8;
+      --radius:      14px; --radius-sm:   8px;
+      --shadow:      0 2px 16px rgba(10,92,138,.09); --shadow-lg:   0 8px 40px rgba(10,92,138,.14);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); background: var(--bg); line-height: 1.6; font-size: 15px; }
+    a { color: var(--brand); text-decoration: none; transition: color .2s; }
+    a:hover { color: var(--brand-mid); text-decoration: underline; }
+    .container { max-width: 1200px; margin-inline: auto; padding: 0 20px; }
+
+    header.topbar { background: linear-gradient(135deg, #08456d 0%, #0a5c8a 60%, #0d76b0 100%); color: #fff; border-bottom: 3px solid var(--gold); }
+    header .top-inner { display: flex; align-items: center; gap: 18px; padding: 12px 0; }
+    header img.logo { width: 60px; height: 60px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0,0,0,.25)); }
+    .site-title b { font-size: 17px; font-family: 'Lora', serif; font-weight: 700; line-height: 1.3; display: block;}
+    .site-title small { font-size: 12px; opacity: .82; font-weight: 500; }
+    
+    nav.main { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,.97); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); box-shadow: 0 2px 12px rgba(10,92,138,.07); }
+    nav .nav-inner { display: flex; align-items: center; gap: 10px; padding: 10px 0; flex-wrap: wrap; }
+    .nav-links { display: flex; gap: 2px; flex-wrap: wrap; margin-right: auto; }
+    .nav-links a { padding: 8px 13px; border-radius: var(--radius-sm); font-weight: 600; font-size: 14px; color: var(--text-soft); }
+    .nav-links a:hover, .nav-links a.active { background: var(--brand-xlight); color: var(--brand); text-decoration: none; }
+    
+    .btn { display: inline-flex; align-items: center; gap: 6px; background: var(--brand); color: #fff; border: none; padding: 9px 18px; border-radius: 999px; cursor: pointer; font-weight: 700; font-size: 14px; transition: all .2s; box-shadow: 0 2px 8px rgba(10,92,138,.2); }
+    .btn:hover { background: var(--brand-mid); transform: translateY(-1px); }
+    .btn.secondary { background: var(--bg-2); color: var(--text); box-shadow: none; }
+    .btn.secondary:hover { background: var(--border); }
+    .btn.gold { background: var(--gold); box-shadow: 0 2px 8px rgba(201,146,42,.2); }
+    .btn.gold:hover { background: #b38226; }
+    
+    .hero { background: linear-gradient(130deg, #073d5f 0%, #0a5c8a 45%, #0e7bb5 100%); color: #fff; position: relative; overflow: hidden; }
+    .hero-gold-bar { height: 4px; background: linear-gradient(90deg, transparent, var(--gold), #f5c842, var(--gold), transparent); }
+    .hero .in { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; padding: 48px 0 52px; align-items: center; }
+    .hero img { width: 100%; border-radius: 16px; box-shadow: 0 12px 48px rgba(0,0,0,.3); }
+    .hero h1 { font-size: 32px; line-height: 1.25; font-family: 'Lora', serif; font-weight: 700; margin: 16px 0; }
+    .hero h1 span { color: #7ed8f7; }
+    
+    .card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .shadow { box-shadow: var(--shadow); }
+    
+    @media (max-width: 900px) {
+      .hero .in { grid-template-columns: 1fr; }
+      .nav-links { display: none; width: 100%; flex-direction: column; }
+      .nav-links.open { display: flex; }
+      .nav-links a { padding: 12px; border-bottom: 1px solid var(--border); }
+    }
+    
+    section { padding: 48px 0 80px; }
+    
+    footer { background: linear-gradient(135deg, #08375a 0%, #0a4d73 100%); color: #b8d8eb; border-top: 3px solid var(--gold); }
+    footer .foot-inner { padding: 48px 0 24px; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container top-inner">
+      <img class="logo" src="https://simpeg.kaltaraprov.go.id/logo/ori_prov_kaltara.png" alt="Logo Kaltara" />
+      <div class="site-title">
+        <b>Satuan Polisi Pamong Praja Provinsi Kalimantan Utara</b>
+        <small>Portal Layanan Terpadu</small>
+      </div>
+    </div>
+  </header>
+  <div class="hero-gold-bar"></div>
+
+  <nav class="main">
+    <div class="container nav-inner">
+      <button class="btn secondary small menu-btn" id="menuBtn" style="display:none">☰ Menu</button>
+      <div class="nav-links" id="navLinks">
+        <a href="beranda" class="active">Beranda</a>
+        <a href="profil">Profil</a>
+        <a href="layanan-pengaduan">Layanan Pengaduan</a>
+        <a href="informasi">Berita & Agenda</a>
+        <a href="regulasi">Regulasi & PPID</a>
+      </div>
+      <div class="nav-actions" style="margin-left:auto">
+        <button class="btn gold small" onclick="alert('Demo: Redirect ke halaman login admin')">🔐 Masuk Petugas</button>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero" style="padding-bottom: 20px;">
+    <div class="container in">
+      <div>
+        <span style="background:var(--gold);color:#fff;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:bold">✦ Prov. Kalimantan Utara</span>
+        <h1>Tegak <span>Aturan</span>, Jaga<br>Ketentraman Benuanta</h1>
+        <p style="opacity:.8; margin-bottom: 24px;">Selamat datang di Lobi Utama Portal Satpol PP Kaltara. Akses layanan pengaduan, informasi operasi, dan data publik secara terpusat.</p>
+        <a href="#layanan-digital" class="btn" style="padding:12px 24px; font-size:16px;">Jelajahi Layanan Digital ↓</a>
+      </div>
+      <div>
+        <img src="https://placehold.co/600x400/0a5c8a/ffffff?text=Ilustrasi+Satpol+PP" alt="Ilustrasi Satpol PP" />
+      </div>
+    </div>
+  </section>
+
+  <section id="layanan-digital" style="background: var(--bg-2); border-bottom: 1px solid var(--border);">
+    <div class="container">
+      <div style="text-align: center; margin-bottom: 40px;">
+        <span style="color:var(--brand);font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;">Integrasi Sistem</span>
+        <h2 style="margin: 8px 0 0; font-size: 32px; font-family: 'Lora', serif;">Portal Layanan Elektronik</h2>
+        <p style="color: var(--text-soft); max-width: 600px; margin: 8px auto 0;">Pilih layanan digital yang Anda butuhkan. Semua sistem terintegrasi untuk memberikan pelayanan yang cepat, transparan, dan akuntabel.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+        <!-- Layanan 1: e-Lapor -->
+        <a href="layanan-pengaduan" class="card shadow" style="display: flex; flex-direction: column; text-decoration: none; transition: transform 0.2s, box-shadow 0.2s;">
+          <div style="background: var(--brand-xlight); border-radius: var(--radius-sm) var(--radius-sm) 0 0; padding: 32px 24px; text-align: center; border-bottom: 1px solid var(--border);">
+            <div style="font-size: 48px;">🚨</div>
+          </div>
+          <div style="padding: 24px; flex: 1;">
+            <h3 style="margin: 0 0 12px; color: var(--brand); font-size: 20px;">e-Lapor Trantibum</h3>
+            <p style="margin: 0; font-size: 15px; color: var(--text-soft);">Layanan pengaduan online masyarakat terkait pelanggaran Perda & ketertiban umum. Lacak status tiket Anda di sini.</p>
+          </div>
+          <div style="padding: 16px 24px; background: #fafcff; border-top: 1px solid var(--border); font-size: 14px; font-weight: 700; color: var(--brand); text-align: right;">Buka Layanan →</div>
+        </a>
+
+        <!-- Layanan 2: Dashboard Publik -->
+        <a href="dashboard-publik" class="card shadow" style="display: flex; flex-direction: column; text-decoration: none; transition: transform 0.2s, box-shadow 0.2s;">
+          <div style="background: #fdf3e3; border-radius: var(--radius-sm) var(--radius-sm) 0 0; padding: 32px 24px; text-align: center; border-bottom: 1px solid var(--border);">
+            <div style="font-size: 48px;">🗺️</div>
+          </div>
+          <div style="padding: 24px; flex: 1;">
+            <h3 style="margin: 0 0 12px; color: #b07c1e; font-size: 20px;">Dashboard Trantibum</h3>
+            <p style="margin: 0; font-size: 15px; color: var(--text-soft);">Pantau peta sebaran dan statistik pengaduan masyarakat se-Kaltara secara real-time dan transparan.</p>
+          </div>
+          <div style="padding: 16px 24px; background: #fafcff; border-top: 1px solid var(--border); font-size: 14px; font-weight: 700; color: #b07c1e; text-align: right;">Buka Dasbor →</div>
+        </a>
+
+        <!-- Layanan 3: e-PPID -->
+        <a href="regulasi" class="card shadow" style="display: flex; flex-direction: column; text-decoration: none; transition: transform 0.2s, box-shadow 0.2s;">
+          <div style="background: #e8f7ee; border-radius: var(--radius-sm) var(--radius-sm) 0 0; padding: 32px 24px; text-align: center; border-bottom: 1px solid var(--border);">
+            <div style="font-size: 48px;">ℹ️</div>
+          </div>
+          <div style="padding: 24px; flex: 1;">
+            <h3 style="margin: 0 0 12px; color: #1a7a3e; font-size: 20px;">e-PPID & Regulasi</h3>
+            <p style="margin: 0; font-size: 15px; color: var(--text-soft);">Akses dokumen publik, Perda, SOP, dan ajukan permohonan informasi publik secara elektronik sesuai UU KIP.</p>
+          </div>
+          <div style="padding: 16px 24px; background: #fafcff; border-top: 1px solid var(--border); font-size: 14px; font-weight: 700; color: #1a7a3e; text-align: right;">Buka PPID →</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container foot-inner">
+      <img src="https://simpeg.kaltaraprov.go.id/logo/ori_prov_kaltara.png" alt="Logo" style="width:60px; margin-bottom:16px" />
+      <h3 style="margin:0; color:#fff">Satpol PP Provinsi Kalimantan Utara</h3>
+      <p style="max-width:500px; margin:8px auto; opacity:.8; font-size:14px">Melayani dengan Tegas, Humanis, dan Profesional. Menjaga ketentraman dan ketertiban di Beranda Depan NKRI.</p>
+      <div style="margin-top:24px; font-size:13px; border-top:1px solid rgba(255,255,255,.1); padding-top:16px;">
+        © 2026 Satpol PP Kaltara. Seluruh hak cipta dilindungi.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Toggle Mobile Menu
+    document.getElementById('menuBtn').addEventListener('click', function() {
+      document.getElementById('navLinks').classList.toggle('open');
+    });
+  </script>
+</body>
+</html>

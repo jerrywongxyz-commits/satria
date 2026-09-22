@@ -1,0 +1,1399 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin Panel — Satpol PP Kaltara</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:wght@600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --sidebar-w: 256px;
+      --brand:     #0a5c8a;
+      --brand-mid: #0e7bb5;
+      --brand-dk:  #073d5f;
+      --brand-xdk: #051f33;
+      --gold:      #c9922a;
+      --gold-lt:   #fdf3e3;
+      --green:     #1a7a3e;
+      --green-lt:  #e8f7ee;
+      --red:       #c0392b;
+      --red-lt:    #fdecea;
+      --orange:    #e67e22;
+      --orange-lt: #fef3e8;
+      --text:      #12213a;
+      --text-soft: #4a6070;
+      --border:    #e0eaf2;
+      --bg:        #f0f5f9;
+      --card:      #ffffff;
+      --radius:    12px;
+      --shadow:    0 1px 12px rgba(10,92,138,.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 14px; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; overflow-x: hidden; }
+
+    /* ═══ SIDEBAR ═══ */
+    .sidebar {
+      width: var(--sidebar-w); flex-shrink: 0;
+      background: var(--brand-xdk);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 200;
+      transition: transform .3s cubic-bezier(.4,0,.2,1);
+    }
+    .sidebar-logo {
+      padding: 18px 16px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sidebar-logo img { width: 36px; height: 36px; object-fit: contain; opacity: .92; }
+    .sidebar-logo-text { line-height: 1.2; }
+    .sidebar-logo-text b { color: #fff; font-size: 13px; display: block; }
+    .sidebar-logo-text span { color: rgba(255,255,255,.5); font-size: 11px; }
+
+    .sidebar-user {
+      margin: 12px 10px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px; padding: 10px 12px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .user-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--brand-mid), var(--brand));
+      display: grid; place-items: center; font-size: 15px;
+      flex-shrink: 0; color: #fff; font-weight: 700;
+    }
+    .user-info b { color: #fff; font-size: 12px; display: block; }
+    .user-info span { color: rgba(255,255,255,.5); font-size: 11px; }
+    .user-dot { width: 7px; height: 7px; border-radius: 50%; background: #27ae60; margin-left: auto; flex-shrink: 0; }
+
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 10px; }
+    .sidebar-nav::-webkit-scrollbar { width: 3px; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 99px; }
+
+    .nav-section-label {
+      color: rgba(255,255,255,.35); font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+      padding: 14px 8px 6px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 9px; cursor: pointer;
+      color: rgba(255,255,255,.65); font-size: 13px; font-weight: 600;
+      transition: background .18s, color .18s; margin-bottom: 2px;
+      border: none; background: transparent; width: 100%; text-align: left;
+      font-family: inherit;
+    }
+    .nav-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+    .nav-item.active { background: var(--brand); color: #fff; box-shadow: 0 2px 10px rgba(10,92,138,.4); }
+    .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+    .nav-item .nav-badge {
+      margin-left: auto; background: var(--red); color: #fff;
+      font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 999px;
+    }
+    .nav-item .nav-badge.gold { background: var(--gold); }
+
+    .sidebar-footer {
+      padding: 12px 10px; border-top: 1px solid rgba(255,255,255,.08);
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .sidebar-footer a, .sidebar-footer button {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: 9px; font-size: 12px; font-weight: 600;
+      color: rgba(255,255,255,.55); cursor: pointer; transition: all .18s;
+      background: transparent; border: none; font-family: inherit; width: 100%; text-align: left;
+      text-decoration: none;
+    }
+    .sidebar-footer a:hover, .sidebar-footer button:hover { color: #fff; background: rgba(255,255,255,.08); }
+
+    /* ═══ MAIN ═══ */
+    .main-wrap {
+      margin-left: var(--sidebar-w); flex: 1;
+      display: flex; flex-direction: column; min-width: 0;
+    }
+
+    /* topbar */
+    .admin-topbar {
+      background: var(--card); border-bottom: 1px solid var(--border);
+      padding: 0 24px; height: 56px;
+      display: flex; align-items: center; gap: 12px;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 1px 8px rgba(10,92,138,.06);
+    }
+    .topbar-title { font-size: 16px; font-weight: 700; font-family: 'Lora', serif; }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .icon-btn {
+      width: 36px; height: 36px; border-radius: 9px;
+      background: var(--bg); border: 1px solid var(--border);
+      cursor: pointer; display: grid; place-items: center; font-size: 16px;
+      transition: background .18s; position: relative;
+    }
+    .icon-btn:hover { background: var(--border); }
+    .notif-dot {
+      position: absolute; top: 6px; right: 6px;
+      width: 7px; height: 7px; border-radius: 50%; background: var(--red);
+      border: 1.5px solid var(--card);
+    }
+    .preview-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--brand); color: #fff; border: none;
+      padding: 7px 14px; border-radius: 9px; cursor: pointer;
+      font-size: 13px; font-weight: 700; font-family: inherit;
+      transition: background .2s;
+    }
+    .preview-btn:hover { background: var(--brand-mid); }
+
+    /* pages */
+    .page { display: none; padding: 24px; animation: fadeIn .25s; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    /* page header */
+    .page-header { margin-bottom: 22px; }
+    .page-header h1 { font-size: 22px; font-family: 'Lora', serif; font-weight: 700; margin-bottom: 4px; }
+    .page-header p { color: var(--text-soft); font-size: 13px; }
+    .page-header-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+    /* ── cards ── */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .card-head { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .card-head h3 { font-size: 14px; font-weight: 700; }
+    .card-body { padding: 18px; }
+
+    /* ── kpi strip ── */
+    .kpi-strip { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 20px; }
+    .kpi {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px 18px; position: relative; overflow: hidden; box-shadow: var(--shadow);
+    }
+    .kpi::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .kpi.b::after { background: linear-gradient(90deg, var(--brand), var(--brand-mid)); }
+    .kpi.g::after { background: linear-gradient(90deg, var(--green), #27ae60); }
+    .kpi.o::after { background: linear-gradient(90deg, var(--gold), #f0b429); }
+    .kpi.r::after { background: linear-gradient(90deg, var(--red), #e74c3c); }
+    .kpi-icon { font-size: 22px; margin-bottom: 8px; }
+    .kpi-num { font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 2px; }
+    .kpi.b .kpi-num { color: var(--brand); }
+    .kpi.g .kpi-num { color: var(--green); }
+    .kpi.o .kpi-num { color: var(--gold); }
+    .kpi.r .kpi-num { color: var(--red); }
+    .kpi-label { font-size: 12px; color: var(--text-soft); font-weight: 600; }
+
+    /* ── grid ── */
+    .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .g21 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+    /* ── buttons ── */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 9px; border: none; cursor: pointer; font-size: 13px; font-weight: 700; font-family: inherit; transition: all .18s; }
+    .btn-primary { background: var(--brand); color: #fff; }
+    .btn-primary:hover { background: var(--brand-mid); }
+    .btn-success { background: var(--green); color: #fff; }
+    .btn-success:hover { background: #1e8f49; }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-danger:hover { background: #a93226; }
+    .btn-warning { background: var(--gold); color: #fff; }
+    .btn-warning:hover { background: #b8821f; }
+    .btn-ghost { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+    .btn-ghost:hover { border-color: var(--brand); color: var(--brand); }
+    .btn-sm { padding: 5px 11px; font-size: 12px; }
+    .btn-xs { padding: 3px 8px; font-size: 11px; border-radius: 6px; }
+
+    /* ── table ── */
+    .tbl { width: 100%; border-collapse: collapse; }
+    .tbl th { background: var(--bg); color: var(--text-soft); padding: 9px 14px; font-size: 11px; font-weight: 700; text-align: left; text-transform: uppercase; letter-spacing: .5px; border-bottom: 2px solid var(--border); white-space: nowrap; }
+    .tbl td { padding: 11px 14px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+    .tbl tr:last-child td { border-bottom: none; }
+    .tbl tr:hover td { background: #f7fafd; }
+    .tbl-actions { display: flex; gap: 4px; }
+
+    /* ── badge ── */
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .badge-green { background: var(--green-lt); color: var(--green); }
+    .badge-red { background: var(--red-lt); color: var(--red); }
+    .badge-orange { background: var(--orange-lt); color: var(--orange); }
+    .badge-gold { background: var(--gold-lt); color: var(--gold); }
+    .badge-gray { background: #f1f5f9; color: #64748b; }
+
+    /* ── form elements ── */
+    label { font-size: 12px; font-weight: 700; color: var(--text-soft); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .3px; }
+    input[type=text], input[type=email], input[type=date], input[type=url], select, textarea {
+      width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 9px;
+      font-size: 13px; font-family: inherit; color: var(--text); background: #fff;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(10,92,138,.1); }
+    textarea { min-height: 100px; resize: vertical; }
+    .form-grid { display: grid; gap: 14px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .form-field { display: flex; flex-direction: column; }
+    .form-actions { display: flex; gap: 8px; margin-top: 4px; }
+
+    /* ── rich text toolbar ── */
+    .rte-toolbar {
+      display: flex; gap: 3px; padding: 8px 10px;
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-bottom: none; border-radius: 9px 9px 0 0; flex-wrap: wrap;
+    }
+    .rte-btn {
+      padding: 5px 9px; border-radius: 6px; border: none;
+      background: transparent; cursor: pointer; font-size: 13px;
+      font-weight: 700; color: var(--text-soft); transition: background .15s;
+      font-family: inherit;
+    }
+    .rte-btn:hover { background: var(--border); color: var(--text); }
+    .rte-sep { width: 1px; height: 22px; background: var(--border); margin: 2px 4px; align-self: center; }
+    .rte-area {
+      border: 1.5px solid var(--border); border-top: none;
+      border-radius: 0 0 9px 9px; padding: 12px;
+      min-height: 150px; outline: none; font-size: 13px;
+      line-height: 1.7; font-family: inherit; color: var(--text);
+      transition: border-color .2s;
+    }
+    .rte-area:focus { border-color: var(--brand); }
+    .rte-area:empty::before { content: attr(data-placeholder); color: #aab; }
+
+    /* ── image upload ── */
+    .upload-zone {
+      border: 2px dashed var(--border); border-radius: 10px;
+      padding: 30px 20px; text-align: center; cursor: pointer;
+      transition: border-color .2s, background .2s; background: var(--bg);
+    }
+    .upload-zone:hover, .upload-zone.drag { border-color: var(--brand); background: var(--brand-xlight, #edf6fb); }
+    .upload-zone .icon { font-size: 36px; margin-bottom: 8px; }
+    .upload-zone p { font-size: 13px; color: var(--text-soft); }
+    .upload-zone b { color: var(--brand); }
+    .upload-zone input { display: none; }
+    .img-preview { display: none; }
+    .img-preview img { width: 100%; border-radius: 8px; }
+
+    /* ── modal ── */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(8,37,60,.5); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 16px; z-index: 999; }
+    .modal { background: var(--card); border-radius: 16px; padding: 24px; width: min(540px,100%); box-shadow: 0 24px 64px rgba(0,0,0,.2); animation: slideUp .2s; }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .modal-head h3 { font-size: 17px; font-weight: 700; font-family: 'Lora', serif; }
+    .modal-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--bg); cursor: pointer; font-size: 18px; display: grid; place-items: center; }
+    .modal-close:hover { background: var(--border); }
+
+    /* ── toast ── */
+    .toast-wrap { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+    .toast {
+      background: #1e3045; color: #fff; padding: 12px 16px; border-radius: 10px;
+      font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.2); animation: slideToast .3s; min-width: 240px;
+      border-left: 3px solid var(--green);
+    }
+    .toast.error { border-left-color: var(--red); }
+    .toast.warn { border-left-color: var(--gold); }
+    @keyframes slideToast { from { transform: translateX(60px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+    /* ── switch ── */
+    .switch { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .switch input { display: none; }
+    .switch-track {
+      width: 40px; height: 22px; border-radius: 999px; background: var(--border);
+      position: relative; transition: background .2s; flex-shrink: 0;
+    }
+    .switch input:checked + .switch-track { background: var(--green); }
+    .switch-track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .2s; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+    .switch input:checked + .switch-track::after { transform: translateX(18px); }
+    .switch-label { font-size: 13px; font-weight: 600; }
+
+    /* ── activity log ── */
+    .log-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .log-item:last-child { border-bottom: none; }
+    .log-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+    .log-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+    .log-time { font-size: 11px; color: var(--text-soft); margin-top: 2px; }
+
+    /* ── search ── */
+    .search-bar { display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 9px; padding: 7px 12px; transition: border .2s; }
+    .search-bar:focus-within { border-color: var(--brand); }
+    .search-bar input { border: none; background: none; outline: none; font-size: 13px; font-family: inherit; color: var(--text); flex: 1; }
+
+    /* ── progress ── */
+    .prog { height: 8px; background: var(--border); border-radius: 999px; overflow: hidden; }
+    .prog-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--brand), var(--brand-mid)); }
+
+    /* ── tabs ── */
+    .tabs { display: flex; gap: 2px; border-bottom: 2px solid var(--border); margin-bottom: 18px; }
+    .tab { padding: 8px 16px; border: none; background: transparent; cursor: pointer; font-size: 13px; font-weight: 700; color: var(--text-soft); font-family: inherit; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all .18s; }
+    .tab:hover { color: var(--brand); }
+    .tab.active { color: var(--brand); border-bottom-color: var(--brand); }
+
+    /* ── agenda cal chip ── */
+    .cal-chip { background: var(--brand-xdk); color: #fff; border-radius: 8px; padding: 3px 8px; font-size: 12px; font-weight: 700; }
+
+    /* mobile */
+    .mob-menu-btn { display: none; }
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(calc(-1 * var(--sidebar-w))); }
+      .sidebar.open { transform: none; }
+      .main-wrap { margin-left: 0; }
+      .mob-menu-btn { display: flex; }
+      .kpi-strip { grid-template-columns: 1fr 1fr; }
+      .g2, .g3, .g21 { grid-template-columns: 1fr; }
+      .form-row, .form-row-3 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 500px) { .kpi-strip { grid-template-columns: 1fr; } }
+
+    /* ── color dot ── */
+    .cdot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+    /* ── img thumb ── */
+    .thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 199; }
+    .sidebar-overlay.show { display: block; }
+  </style>
+</head>
+<body>
+
+<!-- Toast container -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- Sidebar overlay (mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <img src="https://simpeg.kaltaraprov.go.id/logo/ori_prov_kaltara.png" alt="Logo"/>
+    <div class="sidebar-logo-text">
+      <b>Satpol PP Kaltara</b>
+      <span>Admin Panel v1.0</span>
+    </div>
+  </div>
+
+  <div class="sidebar-user">
+    <div class="user-avatar">A</div>
+    <div class="user-info">
+      <b>Admin Utama</b>
+      <span>Super Administrator</span>
+    </div>
+    <div class="user-dot"></div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Utama</div>
+    <button class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">📊</span> Dashboard</button>
+    <button class="nav-item" onclick="showPage('pengaduan',this)"><span class="nav-icon">📋</span> Pengaduan <span class="nav-badge" id="badgePengaduan">5</span></button>
+    <button class="nav-item" onclick="showPage('berita',this)"><span class="nav-icon">📰</span> Berita & Artikel</button>
+    <button class="nav-item" onclick="showPage('agenda',this)"><span class="nav-icon">📅</span> Agenda & Jadwal</button>
+    <button class="nav-item" onclick="showPage('galeri',this)"><span class="nav-icon">📸</span> Galeri Media</button>
+
+    <div class="nav-section-label">Profil & Konten</div>
+    <button class="nav-item" onclick="showPage('profil',this)"><span class="nav-icon">🏛️</span> Profil Organisasi</button>
+    <button class="nav-item" onclick="showPage('regulasi',this)"><span class="nav-icon">⚖️</span> Regulasi & Dokumen</button>
+    <button class="nav-item" onclick="showPage('ppid',this)"><span class="nav-icon">ℹ️</span> PPID</button>
+    <button class="nav-item" onclick="showPage('statistik',this)"><span class="nav-icon">📈</span> Statistik Kinerja</button>
+
+    <div class="nav-section-label">Sistem</div>
+    <button class="nav-item" onclick="showPage('pengguna',this)"><span class="nav-icon">👤</span> Pengguna & Akses</button>
+    <button class="nav-item" onclick="showPage('pengaturan',this)"><span class="nav-icon">⚙️</span> Pengaturan Website</button>
+    <button class="nav-item" onclick="showPage('log',this)"><span class="nav-icon">📝</span> Log Aktivitas <span class="nav-badge gold" id="badgeLog">3</span></button>
+  </nav>
+
+  <div class="sidebar-footer">
+    <a href="satpolpp-kaltara.html" target="_blank">🌐 Lihat Website Publik</a>
+    <button onclick="logout()">🚪 Keluar</button>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main-wrap">
+
+  <!-- Topbar -->
+  <div class="admin-topbar">
+    <button class="icon-btn mob-menu-btn" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+    <div class="topbar-title" id="topbarTitle">📊 Dashboard</div>
+    <div class="topbar-right">
+      <button class="icon-btn" title="Notifikasi" onclick="showPage('pengaduan', document.querySelector('.nav-item:nth-child(2)'))">
+        🔔<span class="notif-dot"></span>
+      </button>
+      <button class="icon-btn" title="Mode gelap" id="darkToggle" onclick="toggleDark()">🌙</button>
+      <button class="preview-btn" onclick="window.open('satpolpp-kaltara.html','_blank')">🌐 Pratinjau</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PAGE: DASHBOARD
+  ══════════════════════════════════════ -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <h1>Selamat Datang, Admin 👋</h1>
+      <p>Ringkasan aktivitas dan status website Satpol PP Kaltara hari ini.</p>
+    </div>
+
+    <div class="kpi-strip">
+      <div class="kpi b"><div class="kpi-icon">📋</div><div class="kpi-num">120</div><div class="kpi-label">Total Pengaduan</div></div>
+      <div class="kpi g"><div class="kpi-icon">✅</div><div class="kpi-num">109</div><div class="kpi-label">Diselesaikan</div></div>
+      <div class="kpi o"><div class="kpi-icon">📰</div><div class="kpi-num">24</div><div class="kpi-label">Artikel Tayang</div></div>
+      <div class="kpi r"><div class="kpi-icon">⏳</div><div class="kpi-num">5</div><div class="kpi-label">Pengaduan Baru</div></div>
+    </div>
+
+    <div class="g21">
+      <div class="card">
+        <div class="card-head"><h3>📈 Tren Pengaduan 2025</h3></div>
+        <div class="card-body"><canvas id="dashChart" height="180"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>⚡ Aktivitas Terkini</h3></div>
+        <div class="card-body" style="padding:10px 16px">
+          <div class="log-item"><div class="log-dot" style="background:var(--red)"></div><div><div class="log-text"><b>Pengaduan baru</b> — Pelanggaran Perda, Tarakan</div><div class="log-time">5 menit lalu</div></div></div>
+          <div class="log-item"><div class="log-dot" style="background:var(--green)"></div><div><div class="log-text">Berita <b>"Operasi Reklame"</b> ditayangkan</div><div class="log-time">32 menit lalu</div></div></div>
+          <div class="log-item"><div class="log-dot" style="background:var(--brand)"></div><div><div class="log-text">Jadwal <b>Patroli 14 Sep</b> diperbarui</div><div class="log-time">1 jam lalu</div></div></div>
+          <div class="log-item"><div class="log-dot" style="background:var(--gold)"></div><div><div class="log-text">Admin <b>Budi</b> menambah 3 foto galeri</div><div class="log-time">3 jam lalu</div></div></div>
+          <div class="log-item"><div class="log-dot" style="background:var(--green)"></div><div><div class="log-text">Tiket <b>SP-XYZ99</b> diselesaikan</div><div class="log-time">4 jam lalu</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="g3">
+      <div class="card">
+        <div class="card-head"><h3>🌐 Status Website</h3></div>
+        <div class="card-body">
+          <div style="display:grid;gap:10px">
+            <div class="flex-between"><span style="font-size:13px">Uptime</span><span class="badge badge-green">✓ Online 99.9%</span></div>
+            <div class="flex-between"><span style="font-size:13px">SSL Sertifikat</span><span class="badge badge-green">✓ Valid 180 hari</span></div>
+            <div class="flex-between"><span style="font-size:13px">Cache</span><span class="badge badge-blue">Aktif</span></div>
+            <div class="flex-between"><span style="font-size:13px">Backup terakhir</span><span class="badge badge-gold">09 Sep 2025</span></div>
+            <div class="flex-between"><span style="font-size:13px">Versi CMS</span><span class="badge badge-gray">v1.0.0</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>📊 Penyelesaian Pengaduan</h3></div>
+        <div class="card-body">
+          <div style="display:grid;gap:10px">
+            <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span>Selesai (109)</span><span style="color:var(--green);font-weight:700">91%</span></div><div class="prog"><div class="prog-fill" style="width:91%;background:linear-gradient(90deg,var(--green),#27ae60)"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span>Proses (6)</span><span style="color:var(--orange);font-weight:700">5%</span></div><div class="prog"><div class="prog-fill" style="width:5%;background:linear-gradient(90deg,var(--orange),#f39c12)"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span>Baru (5)</span><span style="color:var(--red);font-weight:700">4%</span></div><div class="prog"><div class="prog-fill" style="width:4%;background:linear-gradient(90deg,var(--red),#e74c3c)"></div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>🚀 Aksi Cepat</h3></div>
+        <div class="card-body">
+          <div style="display:grid;gap:8px">
+            <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openModal('modalBerita')">✏️ Tulis Berita Baru</button>
+            <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="showPage('agenda',null)">📅 Tambah Agenda</button>
+            <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="showPage('galeri',null)">📸 Upload Foto</button>
+            <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="showPage('pengaduan',null)">📋 Cek Pengaduan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PAGE: PENGADUAN
+  ══════════════════════════════════════ -->
+  <div class="page" id="page-pengaduan">
+    <div class="page-header-row">
+      <div class="page-header" style="margin:0">
+        <h1>📋 Manajemen Pengaduan</h1>
+        <p>Kelola dan tindak lanjuti laporan pengaduan masyarakat</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div class="search-bar"><span>🔍</span><input placeholder="Cari tiket / nama…" oninput="filterTable('tblPengaduan',this.value)"/></div>
+        <select style="width:auto;padding:7px 12px" onchange="filterStatus(this.value)">
+          <option value="">Semua Status</option>
+          <option value="Baru">Baru</option>
+          <option value="Proses">Dalam Proses</option>
+          <option value="Selesai">Selesai</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+      </div>
+    </div>
+    <br>
+    <div class="card">
+      <div style="overflow-x:auto">
+        <table class="tbl" id="tblPengaduan">
+          <thead>
+            <tr>
+              <th>Tiket</th><th>Nama</th><th>Kategori</th><th>Wilayah</th>
+              <th>Tanggal</th><th>Status</th><th>Prioritas</th><th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="pengaduanBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PAGE: BERITA
+  ══════════════════════════════════════ -->
+  <div class="page" id="page-berita">
+    <div class="page-header-row">
+      <div class="page-header" style="margin:0">
+        <h1>📰 Manajemen Berita</h1>
+        <p>Buat, edit, dan kelola artikel berita & pengumuman</p>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('modalBerita')">✏️ Tulis Berita Baru</button>
+    </div>
+    <br>
+
+    <div class="tabs">
+      <button class="tab active" onclick="filterBerita('semua',this)">Semua (24)</button>
+      <button class="tab" onclick="filterBerita('tayang',this)">Tayang (19)</button>
+      <button class="tab" onclick="filterBerita('draft',this)">Draft (5)</button>
+    </div>
+
+    <div class="card">
+      <div style="overflow-x:auto">
+        <table class="tbl" id="tblBerita">
+          <thead>
+            <tr><th>Gambar</th><th>Judul</th><th>Kategori</th><th>Penulis</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr>
+          </thead>
+          <tbody id="beritaBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PAGE: AGENDA
+  ══════════════════════════════════════ -->
+  <div class="page" id="page-agenda">
+    <div class="page-header-row">
+      <div class="page-header" style="margin:0">
+        <h1>📅 Manajemen Agenda</h1>
+        <p>Atur jadwal operasi, patroli, dan kegiatan Satpol PP</p>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('modalAgenda')">➕ Tambah Agenda</button>
+    </div>
+    <br>
+    <div class="card">
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>Tanggal</th><th>Kegiatan</th><th>Lokasi</th><th>Penanggung Jawab</th><th>Status</th><th>Aksi</th></tr></thead>
+          <tbody id="agendaBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PAGE: GALERI
+  ══════════════════════════════════════ -->
+  <div class="page" id="page-galeri">
+    <div class="page-header-row">
+      <div class="page-header" style="margin:0">
+        <h1>📸 Manajemen Galeri</h1>
+        <p>Upload, kelola, dan atur kategori foto & video kegiatan</p>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('modalGaleri')">📤 Upload Media</button>
+    </div>
+    <br>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><h3>Upload Media Baru</h3></div>
+        <div class="card-body">
+          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+            <div class="icon">📁</div>
+            <p>Klik atau <b>seret file</b> ke sini</p>
+            <p style="font-size:12px;margin-top:4px">JPG, PNG, MP4 — maks. 10MB per file</p>
+            <input type="file" id="fileInput" multiple accept="image/*,video/*" onchange="handleFiles(this.files)"/>
+          </div>
+          <div class="img-preview" id="imgPreview" style="margin-top:12px">
+            <img id="previewImg" src="" alt="Preview"/>
+            <div style="font-size:12px;color:var(--text-soft);margin-top:6px" id="previewName"></div>
+          </div>
+          <div class="form-grid" style="margin-top:14px">
+            <div class="form-field"><label>Judul Media</label><input type="text" placeholder="Deskripsi singkat foto/video"/></div>
+            <div class="form-field"><label>Kategori</label>
+              <select>
+                <option>🚔 Operasi Penertiban</option>
+                <option>📚 Edukasi Masyarakat</option>
+                <option>🛡️ Patroli</option>
+                <option>🚨 Linmas</option>
+                <option>🤝 Sosial</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="toast('Media berhasil diunggah!','✅')">📤 Upload Sekarang</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Media Tersimpan <span class="badge badge-blue">18 file</span></h3>
+          <div class="search-bar" style="width:160px"><span>🔍</span><input placeholder="Cari…"/></div>
+        </div>
+        <div class="card-body" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:420px;overflow-y:auto">
+          <div id="galeriGrid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PAGE: PROFIL
+  ══════════════════════════════════════ -->
+  <div class="page" id="page-profil">
+    <div class="page-header">
+      <h1>🏛️ Edit Profil Organisasi</h1>
+      <p>Perbarui konten profil yang tampil di halaman publik</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchSubtab('profil','kata-pengantar',this)">Kata Pengantar</button>
+      <button class="tab" onclick="switchSubtab('profil','latar-belakang',this)">Latar Belakang</button>
+      <button class="tab" onclick="switchSubtab('profil','visi-misi',this)">Visi & Misi</button>
+      <button class="tab" onclick="switchSubtab('profil','struktur',this)">Struktur Org</button>
+      <button class="tab" onclick="switchSubtab('profil','pimpinan',this)">Profil Pimpinan</button>
+    </div>
+
+    <div id="profil-kata-pengantar" class="subtab-panel active">
+      <div class="card">
+        <div class="card-head"><h3>Kata Pengantar</h3><div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="previewContent()">👁 Pratinjau</button><button class="btn btn-primary btn-sm" onclick="saveSection('kata-pengantar')">💾 Simpan</button></div></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Judul Section</label>
+              <input type="text" value="Kata Pengantar Kepala Satpol PP"/>
+            </div>
+            <div class="form-field">
+              <label>Isi Konten</label>
+              <div class="rte-toolbar">
+                <button class="rte-btn" onclick="rteCmd('bold')"><b>B</b></button>
+                <button class="rte-btn" onclick="rteCmd('italic')"><i>I</i></button>
+                <button class="rte-btn" onclick="rteCmd('underline')"><u>U</u></button>
+                <div class="rte-sep"></div>
+                <button class="rte-btn" onclick="rteCmd('insertUnorderedList')">• List</button>
+                <button class="rte-btn" onclick="rteCmd('insertOrderedList')">1. List</button>
+                <div class="rte-sep"></div>
+                <button class="rte-btn" onclick="rteCmd('justifyLeft')">⬅</button>
+                <button class="rte-btn" onclick="rteCmd('justifyCenter')">≡</button>
+                <button class="rte-btn" onclick="rteCmd('justifyRight')">⮕</button>
+              </div>
+              <div class="rte-area" contenteditable="true" data-placeholder="Ketik kata pengantar di sini…">Isi kata pengantar kepala Satpol PP Kaltara di sini. Sampaikan visi kepemimpinan dan komitmen pelayanan kepada masyarakat.</div>
+            </div>
+            <div class="form-field">
+              <label>Foto Pimpinan (opsional)</label>
+              <div class="upload-zone" style="padding:16px" onclick="document.getElementById('fotoInput').click()">
+                <p>📷 Klik untuk pilih foto pimpinan</p>
+                <input type="file" id="fotoInput" accept="image/*" style="display:none" onchange="previewFoto(this)"/>
+              </div>
+              <img id="fotoPreview" src="" style="display:none;width:120px;border-radius:8px;margin-top:8px"/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="profil-visi-misi" class="subtab-panel" style="display:none">
+      <div class="card">
+        <div class="card-head"><h3>Visi & Misi Gubernur</h3><button class="btn btn-primary btn-sm" onclick="saveSection('visi-misi')">💾 Simpan</button></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-field"><label>Visi</label><textarea style="min-height:80px">"Terwujudnya Fondasi Transformasi Kalimantan Utara yang Kokoh sebagai Beranda Depan NKRI yang Maju, Makmur, dan Berkelanjutan."</textarea></div>
+            <div class="form-field"><label>Misi (satu per baris)</label><textarea style="min-height:200px">1. Transformasi Sosial yang inklusif dan berkeadilan
+2. Transformasi Ekonomi yang berkelanjutan dan merata
+3. Tata Kelola pemerintahan yang kolaboratif dan inovatif
+4. Supremasi Hukum dan Stabilitas daerah
+5. Ketahanan Sosial Budaya dan lingkungan berkelanjutan
+6. Pembangunan Wilayah yang merata dan berkeadilan
+7. Infrastruktur berkualitas dan ramah lingkungan
+8. Keseimbangan Pembangunan untuk Indonesia Emas</textarea></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="profil-latar-belakang" class="subtab-panel" style="display:none">
+      <div class="card"><div class="card-head"><h3>Latar Belakang</h3><button class="btn btn-primary btn-sm" onclick="saveSection('latar-belakang')">💾 Simpan</button></div>
+        <div class="card-body"><div class="rte-toolbar"><button class="rte-btn" onclick="rteCmd('bold')"><b>B</b></button><button class="rte-btn" onclick="rteCmd('italic')"><i>I</i></button><div class="rte-sep"></div><button class="rte-btn" onclick="rteCmd('insertUnorderedList')">• List</button></div><div class="rte-area" contenteditable="true" data-placeholder="Uraikan latar belakang pembentukan dan konteks daerah…">Uraikan dasar pembentukan, konteks daerah, dan peran strategis Satpol PP Kaltara di wilayah perbatasan NKRI.</div></div>
+      </div>
+    </div>
+
+    <div id="profil-struktur" class="subtab-panel" style="display:none">
+      <div class="card"><div class="card-head"><h3>Struktur Organisasi</h3><button class="btn btn-primary btn-sm" onclick="saveSection('struktur')">💾 Simpan</button></div>
+        <div class="card-body">
+          <div class="form-grid" id="strukturForm">
+            <label>Daftar Jabatan & Nama Pejabat</label>
+            <div id="jabatanList" style="display:grid;gap:8px"></div>
+            <button class="btn btn-ghost btn-sm" onclick="addJabatan()" style="width:fit-content">➕ Tambah Jabatan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="profil-pimpinan" class="subtab-panel" style="display:none">
+      <div class="card"><div class="card-head"><h3>Profil Pimpinan</h3><button class="btn btn-primary btn-sm" onclick="saveSection('pimpinan')">💾 Simpan</button></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-field"><label>Nama Lengkap</label><input type="text" placeholder="Nama pimpinan"/></div>
+            <div class="form-field"><label>Jabatan</label><input type="text" placeholder="Kepala Satpol PP…"/></div>
+            <div class="form-field"><label>Periode Jabatan</label><input type="text" placeholder="2024 – sekarang"/></div>
+            <div class="form-field"><label>Email Resmi</label><input type="email" placeholder="kepala@satpolpp.kaltara.go.id"/></div>
+          </div>
+          <div class="form-field" style="margin-top:12px"><label>Biografi Singkat</label><textarea placeholder="Latar belakang pendidikan, karier, dan pencapaian…"></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PAGE: STATISTIK
+  ══════════════════════════════════════ -->
+  <div class="page" id="page-statistik">
+    <div class="page-header">
+      <h1>📈 Edit Statistik Kinerja</h1>
+      <p>Perbarui angka statistik yang tampil di dashboard publik dan halaman utama</p>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><h3>Data KPI Utama</h3><button class="btn btn-primary btn-sm" onclick="saveKPI()">💾 Simpan KPI</button></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-row-3">
+              <div class="form-field"><label>Operasi Bulan Ini</label><input type="text" id="kpi_operasi" value="28"/></div>
+              <div class="form-field"><label>% Pengaduan Ditindak</label><input type="text" id="kpi_ditindak" value="91"/></div>
+              <div class="form-field"><label>Skor Kepuasan (/5)</label><input type="text" id="kpi_kepuasan" value="4.6"/></div>
+            </div>
+            <div class="form-row">
+              <div class="form-field"><label>Total Pengaduan Masuk</label><input type="text" id="kpi_pengaduan" value="120"/></div>
+              <div class="form-field"><label>Tindak Lanjut Selesai</label><input type="text" id="kpi_selesai" value="109"/></div>
+              <div class="form-field"><label>Dalam Proses</label><input type="text" id="kpi_proses" value="11"/></div>
+              <div class="form-field"><label>Total Operasi Ketertiban</label><input type="text" id="kpi_ops" value="86"/></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Data Per Wilayah</h3><button class="btn btn-primary btn-sm" onclick="saveWilayah()">💾 Simpan</button></div>
+        <div class="card-body">
+          <div class="form-grid" id="wilayahForm"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Data Tren Bulanan (Tahun Berjalan)</h3><button class="btn btn-primary btn-sm" onclick="saveTren()">💾 Simpan Tren</button></div>
+      <div class="card-body">
+        <p style="font-size:12px;color:var(--text-soft);margin-bottom:12px">Isi jumlah pengaduan per bulan (Jan – Des):</p>
+        <div class="form-row-3">
+          <div class="form-field"><label>Jan</label><input type="text" value="40"/></div>
+          <div class="form-field"><label>Feb</label><input type="text" value="52"/></div>
+          <div class="form-field"><label>Mar</label><input type="text" value="48"/></div>
+          <div class="form-field"><label>Apr</label><input type="text" value="60"/></div>
+          <div class="form-field"><label>Mei</label><input type="text" value="71"/></div>
+          <div class="form-field"><label>Jun</label><input type="text" value="63"/></div>
+          <div class="form-field"><label>Jul</label><input type="text" value="58"/></div>
+          <div class="form-field"><label>Agu</label><input type="text" value="77"/></div>
+          <div class="form-field"><label>Sep</label><input type="text" value="66"/></div>
+          <div class="form-field"><label>Okt</label><input type="text" value="0"/></div>
+          <div class="form-field"><label>Nov</label><input type="text" value="0"/></div>
+          <div class="form-field"><label>Des</label><input type="text" value="0"/></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PAGE: REGULASI
+  ══════════════════════════════════════ -->
+  <div class="page" id="page-regulasi">
+    <div class="page-header-row">
+      <div class="page-header" style="margin:0"><h1>⚖️ Regulasi & Dokumen</h1><p>Kelola daftar peraturan dan dokumen publik yang dapat diunduh</p></div>
+      <button class="btn btn-primary" onclick="openModal('modalRegulasi')">➕ Tambah Regulasi</button>
+    </div><br>
+    <div class="card">
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>No</th><th>Jenis</th><th>Judul Regulasi</th><th>Tahun</th><th>File PDF</th><th>Status</th><th>Aksi</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><span class="badge badge-blue">Perda</span></td><td>Perda No. x tentang Ketertiban Umum</td><td>2022</td><td><span class="badge badge-green">✓ Tersedia</span></td><td><label class="switch"><input type="checkbox" checked/><span class="switch-track"></span></label></td><td><div class="tbl-actions"><button class="btn btn-ghost btn-xs">✏️</button><button class="btn btn-danger btn-xs">🗑</button></div></td></tr>
+            <tr><td>2</td><td><span class="badge badge-gold">Pergub</span></td><td>Pergub No. y tentang Penjabaran Tugas Satpol PP</td><td>2023</td><td><span class="badge badge-red">✗ Belum ada</span></td><td><label class="switch"><input type="checkbox" checked/><span class="switch-track"></span></label></td><td><div class="tbl-actions"><button class="btn btn-ghost btn-xs">✏️</button><button class="btn btn-danger btn-xs">🗑</button></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PAGE: PPID
+  ══════════════════════════════════════ -->
+  <div class="page" id="page-ppid">
+    <div class="page-header"><h1>ℹ️ Manajemen PPID</h1><p>Kelola permohonan informasi publik dan daftar informasi berkala</p></div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><h3>📨 Permohonan Masuk <span class="badge badge-red">3 baru</span></h3></div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr><th>Nama</th><th>Email</th><th>Informasi Diminta</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody>
+              <tr><td><b>Andi Saputra</b></td><td>andi@gmail.com</td><td>SOP Penertiban 2025</td><td>09 Sep</td><td><span class="badge badge-red">● Baru</span></td><td><button class="btn btn-primary btn-xs">Tindak Lanjut</button></td></tr>
+              <tr><td><b>Siti Rahmah</b></td><td>siti@mail.com</td><td>Anggaran operasi 2024</td><td>08 Sep</td><td><span class="badge badge-orange">⏳ Proses</span></td><td><button class="btn btn-ghost btn-xs">Lihat</button></td></tr>
+              <tr><td><b>Budi W.</b></td><td>budi@corp.id</td><td>Laporan kinerja TW II</td><td>07 Sep</td><td><span class="badge badge-green">✓ Selesai</span></td><td><button class="btn btn-ghost btn-xs">Lihat</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>📋 Informasi Berkala</h3><button class="btn btn-primary btn-sm" onclick="toast('Tersimpan!','✅')">💾 Simpan</button></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <p style="font-size:12px;color:var(--text-soft)">Centang informasi yang tersedia untuk publik:</p>
+            <label class="switch"><input type="checkbox" checked/><span class="switch-track"></span><span class="switch-label">Profil & tugas organisasi</span></label>
+            <label class="switch"><input type="checkbox" checked/><span class="switch-track"></span><span class="switch-label">Program dan kegiatan tahunan</span></label>
+            <label class="switch"><input type="checkbox" checked/><span class="switch-track"></span><span class="switch-label">Ringkasan RKPD/Renja</span></label>
+            <label class="switch"><input type="checkbox"/><span class="switch-track"></span><span class="switch-label">Laporan keuangan (segera)</span></label>
+            <label class="switch"><input type="checkbox" checked/><span class="switch-track"></span><span class="switch-label">Daftar regulasi dan SOP</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PAGE: PENGGUNA
+  ══════════════════════════════════════ -->
+  <div class="page" id="page-pengguna">
+    <div class="page-header-row">
+      <div class="page-header" style="margin:0"><h1>👤 Pengguna & Hak Akses</h1><p>Kelola akun admin dan atur tingkat izin akses</p></div>
+      <button class="btn btn-primary" onclick="openModal('modalPengguna')">➕ Tambah Pengguna</button>
+    </div><br>
+    <div class="card">
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>Nama</th><th>Username</th><th>Peran</th><th>Akses</th><th>Login Terakhir</th><th>Status</th><th>Aksi</th></tr></thead>
+          <tbody>
+            <tr><td><b>Admin Utama</b></td><td>admin</td><td><span class="badge badge-red">Super Admin</span></td><td>Semua</td><td>Hari ini, 08:12</td><td><span class="badge badge-green">● Aktif</span></td><td><div class="tbl-actions"><button class="btn btn-ghost btn-xs">✏️ Edit</button></div></td></tr>
+            <tr><td><b>Budi Santoso</b></td><td>budi.s</td><td><span class="badge badge-blue">Editor</span></td><td>Berita, Galeri</td><td>Kemarin, 14:30</td><td><span class="badge badge-green">● Aktif</span></td><td><div class="tbl-actions"><button class="btn btn-ghost btn-xs">✏️</button><button class="btn btn-danger btn-xs">Suspend</button></div></td></tr>
+            <tr><td><b>Rahmawati</b></td><td>rahma.w</td><td><span class="badge badge-gold">Operator</span></td><td>Pengaduan</td><td>3 hari lalu</td><td><span class="badge badge-orange">⏸ Nonaktif</span></td><td><div class="tbl-actions"><button class="btn btn-ghost btn-xs">✏️</button><button class="btn btn-success btn-xs">Aktifkan</button></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <br>
+    <div class="card">
+      <div class="card-head"><h3>🔐 Matriks Hak Akses</h3></div>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>Fitur</th><th>Super Admin</th><th>Editor</th><th>Operator</th></tr></thead>
+          <tbody>
+            <tr><td>Dashboard</td><td>✅</td><td>✅</td><td>✅</td></tr>
+            <tr><td>Pengaduan</td><td>✅</td><td>👁 Lihat</td><td>✅</td></tr>
+            <tr><td>Berita & Artikel</td><td>✅</td><td>✅</td><td>❌</td></tr>
+            <tr><td>Statistik Kinerja</td><td>✅</td><td>❌</td><td>❌</td></tr>
+            <tr><td>Pengguna & Akses</td><td>✅</td><td>❌</td><td>❌</td></tr>
+            <tr><td>Pengaturan Website</td><td>✅</td><td>❌</td><td>❌</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PAGE: PENGATURAN
+  ══════════════════════════════════════ -->
+  <div class="page" id="page-pengaturan">
+    <div class="page-header"><h1>⚙️ Pengaturan Website</h1><p>Konfigurasi umum tampilan dan informasi website publik</p></div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-head"><h3>Informasi Umum</h3><button class="btn btn-primary btn-sm" onclick="saveSection('pengaturan')">💾 Simpan</button></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-field"><label>Nama Website</label><input type="text" value="Satpol PP Provinsi Kalimantan Utara"/></div>
+            <div class="form-field"><label>Tagline</label><input type="text" value="Melayani dengan Tegas, Humanis, dan Profesional"/></div>
+            <div class="form-field"><label>Alamat Kantor</label><input type="text" value="Jalan H. Masykur No. 019, Tanjung Selor"/></div>
+            <div class="form-field"><label>Telepon</label><input type="text" value="(0552) 2036660"/></div>
+            <div class="form-field"><label>Email Resmi</label><input type="email" value="satuanppprovkaltara@gmail.com"/></div>
+            <div class="form-field"><label>Nomor WhatsApp</label><input type="text" value="+62 800-0000-0000"/></div>
+            <div class="form-field"><label>URL Asisten AI (QR)</label><input type="url" value="https://contoh.go.id/layanan-pengaduan-ai"/></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Tampilan & Fitur</h3><button class="btn btn-primary btn-sm" onclick="saveSection('tampilan')">💾 Simpan</button></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <label class="switch"><input type="checkbox" checked/><span class="switch-track"></span><span class="switch-label">Tampilkan Ticker Berita</span></label>
+            <label class="switch"><input type="checkbox" checked/><span class="switch-track"></span><span class="switch-label">Aktifkan Form Pengaduan Online</span></label>
+            <label class="switch"><input type="checkbox" checked/><span class="switch-track"></span><span class="switch-label">Aktifkan Lacak Tiket</span></label>
+            <label class="switch"><input type="checkbox" checked/><span class="switch-track"></span><span class="switch-label">Tampilkan Peta Rawan</span></label>
+            <label class="switch"><input type="checkbox"/><span class="switch-track"></span><span class="switch-label">Mode Maintenance</span></label>
+            <label class="switch"><input type="checkbox" checked/><span class="switch-track"></span><span class="switch-label">Aktifkan Asisten AI (SIPA)</span></label>
+            <div class="form-field"><label>Pesan Maintenance</label><textarea style="min-height:70px" placeholder="Website sedang dalam pemeliharaan…"></textarea></div>
+            <button class="btn btn-danger btn-sm" onclick="toast('Cache berhasil dibersihkan!','✅')">🗑 Bersihkan Cache Website</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PAGE: LOG
+  ══════════════════════════════════════ -->
+  <div class="page" id="page-log">
+    <div class="page-header-row">
+      <div class="page-header" style="margin:0"><h1>📝 Log Aktivitas</h1><p>Rekam jejak semua perubahan yang dilakukan admin</p></div>
+      <button class="btn btn-ghost btn-sm" onclick="toast('Log diekspor!','✅')">⬇ Export Log</button>
+    </div><br>
+    <div class="card">
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>Waktu</th><th>Admin</th><th>Aksi</th><th>Modul</th><th>Detail</th><th>IP</th></tr></thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main-wrap -->
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- Modal Berita -->
+<div class="modal-backdrop" id="modalBerita" style="display:none" onclick="closeModalOutside(event,'modalBerita')">
+  <div class="modal" style="width:min(680px,100%)">
+    <div class="modal-head"><h3>✏️ Tulis Berita Baru</h3><button class="modal-close" onclick="closeModal('modalBerita')">×</button></div>
+    <div class="form-grid">
+      <div class="form-field"><label>Judul Berita</label><input type="text" placeholder="Judul yang menarik dan informatif…"/></div>
+      <div class="form-row">
+        <div class="form-field"><label>Kategori</label><select><option>Rilis</option><option>Edukasi</option><option>Kolaborasi</option><option>Pengumuman</option></select></div>
+        <div class="form-field"><label>Status Tayang</label><select><option>Draft</option><option>Tayang</option><option>Terjadwal</option></select></div>
+        <div class="form-field"><label>Tanggal Tayang</label><input type="date"/></div>
+        <div class="form-field"><label>Penulis</label><input type="text" value="Admin Utama"/></div>
+      </div>
+      <div class="form-field">
+        <label>Gambar Utama</label>
+        <div class="upload-zone" style="padding:14px" onclick="document.getElementById('beritaImg').click()"><p>📷 Upload gambar berita</p><input type="file" id="beritaImg" accept="image/*" style="display:none"/></div>
+      </div>
+      <div class="form-field">
+        <label>Isi Berita</label>
+        <div class="rte-toolbar"><button class="rte-btn" onclick="rteCmd('bold')"><b>B</b></button><button class="rte-btn" onclick="rteCmd('italic')"><i>I</i></button><button class="rte-btn" onclick="rteCmd('underline')"><u>U</u></button><div class="rte-sep"></div><button class="rte-btn" onclick="rteCmd('insertUnorderedList')">• List</button></div>
+        <div class="rte-area" contenteditable="true" data-placeholder="Tulis isi berita di sini…" style="min-height:180px"></div>
+      </div>
+      <div class="form-actions"><button class="btn btn-primary" onclick="saveBerita()">📢 Terbitkan</button><button class="btn btn-ghost" onclick="closeModal('modalBerita')">Batal</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Agenda -->
+<div class="modal-backdrop" id="modalAgenda" style="display:none" onclick="closeModalOutside(event,'modalAgenda')">
+  <div class="modal">
+    <div class="modal-head"><h3>📅 Tambah Agenda</h3><button class="modal-close" onclick="closeModal('modalAgenda')">×</button></div>
+    <div class="form-grid">
+      <div class="form-field"><label>Nama Kegiatan</label><input type="text" id="agendaJudul" placeholder="Operasi / Patroli / Simulasi…"/></div>
+      <div class="form-row">
+        <div class="form-field"><label>Tanggal</label><input type="date" id="agendaTgl"/></div>
+        <div class="form-field"><label>Penanggung Jawab</label><select id="agendaPJ"><option>Bidang Penegakan Perda</option><option>Trantibumlinmas</option><option>Perlinmas</option><option>Sekretariat</option></select></div>
+      </div>
+      <div class="form-field"><label>Lokasi</label><input type="text" id="agendaLokasi" placeholder="Nama jalan / kawasan…"/></div>
+      <div class="form-field"><label>Keterangan</label><textarea id="agendaKet" placeholder="Detail tambahan…" style="min-height:80px"></textarea></div>
+      <div class="form-actions"><button class="btn btn-primary" onclick="saveAgenda()">💾 Simpan Agenda</button><button class="btn btn-ghost" onclick="closeModal('modalAgenda')">Batal</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Pengguna -->
+<div class="modal-backdrop" id="modalPengguna" style="display:none" onclick="closeModalOutside(event,'modalPengguna')">
+  <div class="modal">
+    <div class="modal-head"><h3>👤 Tambah Pengguna</h3><button class="modal-close" onclick="closeModal('modalPengguna')">×</button></div>
+    <div class="form-grid">
+      <div class="form-row">
+        <div class="form-field"><label>Nama Lengkap</label><input type="text" placeholder="Nama admin"/></div>
+        <div class="form-field"><label>Username</label><input type="text" placeholder="username"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Email</label><input type="email" placeholder="admin@email.com"/></div>
+        <div class="form-field"><label>Kata Sandi</label><input type="password" placeholder="Min. 8 karakter"/></div>
+      </div>
+      <div class="form-field"><label>Peran / Role</label>
+        <select>
+          <option>Super Admin — Akses penuh</option>
+          <option>Editor — Kelola konten</option>
+          <option>Operator — Kelola pengaduan</option>
+        </select>
+      </div>
+      <div class="form-actions"><button class="btn btn-primary" onclick="toast('Pengguna ditambahkan!','✅');closeModal('modalPengguna')">➕ Buat Akun</button><button class="btn btn-ghost" onclick="closeModal('modalPengguna')">Batal</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Regulasi -->
+<div class="modal-backdrop" id="modalRegulasi" style="display:none" onclick="closeModalOutside(event,'modalRegulasi')">
+  <div class="modal">
+    <div class="modal-head"><h3>⚖️ Tambah Regulasi</h3><button class="modal-close" onclick="closeModal('modalRegulasi')">×</button></div>
+    <div class="form-grid">
+      <div class="form-row">
+        <div class="form-field"><label>Jenis</label><select><option>Perda</option><option>Pergub</option><option>SK Kepala Daerah</option><option>SOP</option></select></div>
+        <div class="form-field"><label>Nomor</label><input type="text" placeholder="No. xx Tahun xxxx"/></div>
+      </div>
+      <div class="form-field"><label>Judul Regulasi</label><input type="text" placeholder="Tentang…"/></div>
+      <div class="form-field"><label>Upload File PDF</label><div class="upload-zone" style="padding:14px"><p>📄 Upload dokumen PDF</p></div></div>
+      <div class="form-actions"><button class="btn btn-primary" onclick="toast('Regulasi ditambahkan!','✅');closeModal('modalRegulasi')">💾 Simpan</button><button class="btn btn-ghost" onclick="closeModal('modalRegulasi')">Batal</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══ STATE ═══
+let isDark = false;
+let pages = {};
+
+// ═══ NAVIGATION ═══
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  if (btn) btn.classList.add('active');
+  const titles = {
+    dashboard:'📊 Dashboard', pengaduan:'📋 Pengaduan', berita:'📰 Berita & Artikel',
+    agenda:'📅 Agenda', galeri:'📸 Galeri Media', profil:'🏛️ Profil Organisasi',
+    regulasi:'⚖️ Regulasi', ppid:'ℹ️ PPID', statistik:'📈 Statistik Kinerja',
+    pengguna:'👤 Pengguna & Akses', pengaturan:'⚙️ Pengaturan', log:'📝 Log Aktivitas'
+  };
+  document.getElementById('topbarTitle').textContent = titles[id] || id;
+  if (window.innerWidth < 900) { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show'); }
+  // Init specifics
+  if (id === 'dashboard') initDashChart();
+  if (id === 'pengaduan') renderPengaduan();
+  if (id === 'berita') renderBerita();
+  if (id === 'agenda') renderAgenda();
+  if (id === 'galeri') renderGaleriGrid();
+  if (id === 'statistik') initWilayahForm();
+  if (id === 'profil') initStrukturForm();
+  if (id === 'log') renderLog();
+}
+
+// ═══ SIDEBAR ═══
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+
+// ═══ DARK MODE ═══
+function toggleDark() {
+  isDark = !isDark;
+  document.documentElement.style.setProperty('--bg', isDark ? '#0e1a26' : '#f0f5f9');
+  document.documentElement.style.setProperty('--card', isDark ? '#152232' : '#ffffff');
+  document.documentElement.style.setProperty('--border', isDark ? '#1e3a52' : '#e0eaf2');
+  document.documentElement.style.setProperty('--text', isDark ? '#d6eaf8' : '#12213a');
+  document.documentElement.style.setProperty('--text-soft', isDark ? '#7fa5be' : '#4a6070');
+  document.getElementById('darkToggle').textContent = isDark ? '☀️' : '🌙';
+}
+
+// ═══ TOAST ═══
+function toast(msg, icon = '✅', type = '') {
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = `<span>${icon}</span> ${msg}`;
+  wrap.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 300); }, 3000);
+}
+
+// ═══ MODALS ═══
+function openModal(id) { document.getElementById(id).style.display = 'grid'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+function closeModalOutside(e, id) { if (e.target.id === id) closeModal(id); }
+
+// ═══ SUBTABS ═══
+function switchSubtab(page, tab, btn) {
+  document.querySelectorAll(`#page-${page} .subtab-panel`).forEach(p => p.style.display = 'none');
+  document.querySelectorAll(`#page-${page} .tabs .tab`).forEach(t => t.classList.remove('active'));
+  const el = document.getElementById(`${page}-${tab}`);
+  if (el) el.style.display = 'block';
+  if (btn) btn.classList.add('active');
+}
+
+// ═══ RTE ═══
+function rteCmd(cmd) { document.execCommand(cmd, false, null); }
+
+// ═══ FILE UPLOAD PREVIEW ═══
+function handleFiles(files) {
+  if (!files[0]) return;
+  const f = files[0];
+  document.getElementById('previewName').textContent = f.name + ' (' + (f.size/1024).toFixed(1) + ' KB)';
+  if (f.type.startsWith('image/')) {
+    const r = new FileReader();
+    r.onload = e => { document.getElementById('previewImg').src = e.target.result; document.getElementById('imgPreview').style.display = 'block'; };
+    r.readAsDataURL(f);
+  } else {
+    document.getElementById('imgPreview').style.display = 'none';
+  }
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag');
+  handleFiles(e.dataTransfer.files);
+}
+function previewFoto(input) {
+  const r = new FileReader();
+  r.onload = e => { document.getElementById('fotoPreview').src = e.target.result; document.getElementById('fotoPreview').style.display = 'block'; };
+  r.readAsDataURL(input.files[0]);
+}
+
+// ═══ DASHBOARD CHART ═══
+let dashChart;
+function initDashChart() {
+  const cvs = document.getElementById('dashChart');
+  if (!cvs || !window.Chart) return;
+  if (dashChart) dashChart.destroy();
+  dashChart = new Chart(cvs.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep'],
+      datasets: [{
+        label: 'Pengaduan', data: [40,52,48,60,71,63,58,77,66],
+        borderColor: '#0a5c8a', backgroundColor: 'rgba(10,92,138,.1)',
+        tension: .4, fill: true, pointBackgroundColor: '#0a5c8a', pointRadius: 4
+      },{
+        label: 'Diselesaikan', data: [36,48,44,55,65,59,53,71,60],
+        borderColor: '#1a7a3e', backgroundColor: 'rgba(26,122,62,.08)',
+        tension: .4, fill: true, borderDash: [4,3], pointBackgroundColor: '#1a7a3e', pointRadius: 3
+      }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.04)' } }, x: { grid: { display: false } } } }
+  });
+}
+
+// ═══ PENGADUAN DATA ═══
+const pengaduanData = [
+  { id:'SP-DE123', nama:'Andi Saputra', kat:'Pelanggaran Perda', wil:'Tarakan', tgl:'09 Sep', status:'Baru', prio:'Tinggi' },
+  { id:'SP-MN456', nama:'Siti Rahmah', kat:'Gangguan Ketertiban', wil:'Tanjung Selor', tgl:'08 Sep', status:'Proses', prio:'Sedang' },
+  { id:'SP-GH789', nama:'Budi Wibowo', kat:'Ketentraman Masy.', wil:'Nunukan', tgl:'07 Sep', status:'Proses', prio:'Sedang' },
+  { id:'SP-QR012', nama:'Anonimous', kat:'Pelanggaran Perda', wil:'Malinau', tgl:'06 Sep', status:'Baru', prio:'Tinggi' },
+  { id:'SP-UV345', nama:'Dewi Astuti', kat:'Perlindungan Masy.', wil:'Tarakan', tgl:'05 Sep', status:'Selesai', prio:'Rendah' },
+  { id:'SP-WX678', nama:'Hendra K.', kat:'Gangguan Ketertiban', wil:'Tana Tidung', tgl:'04 Sep', status:'Selesai', prio:'Rendah' },
+  { id:'SP-AB901', nama:'Anonimous', kat:'Pelanggaran Perda', wil:'Tarakan', tgl:'03 Sep', status:'Baru', prio:'Tinggi' },
+  { id:'SP-CD234', nama:'Yuli Pratiwi', kat:'Ketentraman Masy.', wil:'Malinau', tgl:'02 Sep', status:'Selesai', prio:'Sedang' },
+  { id:'SP-EF567', nama:'Anonimous', kat:'Perlindungan Masy.', wil:'Nunukan', tgl:'01 Sep', status:'Baru', prio:'Tinggi' },
+  { id:'SP-GH890', nama:'Rahmat S.', kat:'Pelanggaran Perda', wil:'Tanjung Selor', tgl:'31 Agu', status:'Selesai', prio:'Rendah' },
+];
+const statusBadge = { Baru:'badge-red', Proses:'badge-orange', Selesai:'badge-green' };
+const prioBadge = { Tinggi:'badge-red', Sedang:'badge-gold', Rendah:'badge-gray' };
+
+function renderPengaduan(data = pengaduanData) {
+  document.getElementById('pengaduanBody').innerHTML = data.map(d => `
+    <tr>
+      <td><b style="color:var(--brand)">${d.id}</b></td>
+      <td>${d.nama}</td>
+      <td>${d.kat}</td>
+      <td>${d.wil}</td>
+      <td>${d.tgl}</td>
+      <td><span class="badge ${statusBadge[d.status]}">${d.status === 'Baru' ? '● ' : d.status === 'Proses' ? '⏳ ' : '✓ '}${d.status}</span></td>
+      <td><span class="badge ${prioBadge[d.prio]}">${d.prio}</span></td>
+      <td>
+        <div class="tbl-actions">
+          <button class="btn btn-primary btn-xs" onclick="toast('Membuka detail tiket ${d.id}…','📋')">Detail</button>
+          ${d.status !== 'Selesai' ? `<button class="btn btn-success btn-xs" onclick="resolveTicket('${d.id}',this)">✓ Selesai</button>` : ''}
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function resolveTicket(id, btn) {
+  btn.parentElement.parentElement.parentElement.cells[5].innerHTML = '<span class="badge badge-green">✓ Selesai</span>';
+  btn.remove();
+  toast('Tiket ' + id + ' diselesaikan!', '✅');
+  document.getElementById('badgePengaduan').textContent = Math.max(0, +document.getElementById('badgePengaduan').textContent - 1);
+}
+
+function filterTable(tblId, val) {
+  const rows = document.querySelectorAll('#' + tblId + ' tbody tr');
+  rows.forEach(r => r.style.display = r.textContent.toLowerCase().includes(val.toLowerCase()) ? '' : 'none');
+}
+function filterStatus(val) {
+  if (!val) { renderPengaduan(); return; }
+  renderPengaduan(pengaduanData.filter(d => d.status === val));
+}
+function exportCSV() {
+  const h = ['Tiket','Nama','Kategori','Wilayah','Tanggal','Status','Prioritas'];
+  const rows = pengaduanData.map(d => [d.id,d.nama,d.kat,d.wil,d.tgl,d.status,d.prio]);
+  const csv = [h, ...rows].map(r => r.join(',')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = 'pengaduan-satpolpp.csv'; a.click();
+  toast('CSV berhasil diekspor!', '⬇');
+}
+
+// ═══ BERITA ═══
+const beritaData = [
+  { id:1, img:'0a5c8a/d6edf7', judul:'Operasi Ketertiban Kawasan Niaga', kat:'Rilis', penulis:'Admin Utama', tgl:'09 Sep 2025', status:'Tayang' },
+  { id:2, img:'1a7a3e/e8f7ee', judul:'Sosialisasi Tertib Usaha bagi PKL', kat:'Edukasi', penulis:'Budi S.', tgl:'05 Sep 2025', status:'Tayang' },
+  { id:3, img:'c9922a/fdf3e3', judul:'Patroli Gabungan dengan Perangkat Daerah', kat:'Kolaborasi', penulis:'Admin Utama', tgl:'31 Agu 2025', status:'Tayang' },
+  { id:4, img:'7b2d8b/f3e8fd', judul:'Draft: Rencana Operasi Oktober 2025', kat:'Pengumuman', penulis:'Budi S.', tgl:'10 Sep 2025', status:'Draft' },
+  { id:5, img:'c0392b/fdecea', judul:'Draft: Rekap Kinerja TW III', kat:'Rilis', penulis:'Admin Utama', tgl:'10 Sep 2025', status:'Draft' },
+];
+
+function renderBerita(filter = 'semua') {
+  let data = beritaData;
+  if (filter === 'tayang') data = beritaData.filter(d => d.status === 'Tayang');
+  if (filter === 'draft') data = beritaData.filter(d => d.status === 'Draft');
+  document.getElementById('beritaBody').innerHTML = data.map(d => `
+    <tr>
+      <td><img class="thumb" src="https://placehold.co/80x60/${d.img}?text=IMG" alt=""/></td>
+      <td><b style="font-size:13px">${d.judul}</b></td>
+      <td>${d.kat}</td>
+      <td>${d.penulis}</td>
+      <td>${d.tgl}</td>
+      <td><span class="badge ${d.status==='Tayang'?'badge-green':'badge-gold'}">${d.status==='Tayang'?'● ':'📝 '}${d.status}</span></td>
+      <td><div class="tbl-actions">
+        <button class="btn btn-ghost btn-xs" onclick="toast('Membuka editor berita…','✏️')">✏️ Edit</button>
+        <button class="btn btn-danger btn-xs" onclick="toast('Berita dihapus!','🗑','error');this.closest('tr').remove()">🗑</button>
+      </div></td>
+    </tr>
+  `).join('');
+}
+
+function filterBerita(f, btn) {
+  document.querySelectorAll('#page-berita .tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderBerita(f);
+}
+
+function saveBerita() { closeModal('modalBerita'); toast('Berita berhasil diterbitkan!', '📢'); }
+
+// ═══ AGENDA ═══
+const agendaData = [
+  { tgl:'10 Sep 2025', kegiatan:'Operasi penertiban reklame', lok:'Koridor Utama', pj:'Bidang Penegakan', status:'Aktif' },
+  { tgl:'14 Sep 2025', kegiatan:'Patroli gabungan pasar', lok:'Pasar Induk', pj:'Trantibum', status:'Aktif' },
+  { tgl:'18 Sep 2025', kegiatan:'Simulasi linmas & mitigasi bencana', lok:'Alun-alun', pj:'Perlinmas', status:'Aktif' },
+];
+
+function renderAgenda() {
+  document.getElementById('agendaBody').innerHTML = agendaData.map((d,i) => `
+    <tr>
+      <td><span class="cal-chip">${d.tgl}</span></td>
+      <td><b>${d.kegiatan}</b></td>
+      <td>${d.lok}</td>
+      <td>${d.pj}</td>
+      <td><span class="badge badge-green">● ${d.status}</span></td>
+      <td><div class="tbl-actions">
+        <button class="btn btn-ghost btn-xs" onclick="editAgenda(${i})">✏️ Edit</button>
+        <button class="btn btn-danger btn-xs" onclick="agendaData.splice(${i},1);renderAgenda();toast('Agenda dihapus','🗑','error')">🗑</button>
+      </div></td>
+    </tr>
+  `).join('');
+}
+
+function saveAgenda() {
+  const judul = document.getElementById('agendaJudul').value.trim();
+  const tgl = document.getElementById('agendaTgl').value;
+  const lok = document.getElementById('agendaLokasi').value.trim();
+  const pj = document.getElementById('agendaPJ').value;
+  if (!judul || !tgl || !lok) { toast('Isi semua field wajib!', '⚠', 'error'); return; }
+  agendaData.push({ tgl: new Date(tgl).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}), kegiatan:judul, lok, pj, status:'Aktif' });
+  renderAgenda();
+  closeModal('modalAgenda');
+  toast('Agenda berhasil ditambahkan!', '✅');
+}
+
+// ═══ GALERI GRID ═══
+const colors = ['0a5c8a/d6edf7','1a7a3e/e8f7ee','c9922a/fdf3e3','c0392b/fdecea','7b2d8b/f3e8fd'];
+function renderGaleriGrid() {
+  const el = document.getElementById('galeriGrid');
+  if (!el) return;
+  el.style.display = 'contents';
+  el.innerHTML = Array.from({length:9},(_,i) => `
+    <div style="position:relative;border-radius:8px;overflow:hidden;cursor:pointer;border:1px solid var(--border)" onclick="toast('Gambar dipilih untuk diedit','🖼')">
+      <img src="https://placehold.co/120x90/${colors[i%5]}?text=IMG${i+1}" style="width:100%;display:block"/>
+      <div style="position:absolute;inset:0;background:rgba(0,0,0,.5);opacity:0;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:4px" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
+        <button class="btn btn-ghost btn-xs" style="color:#fff;background:rgba(255,255,255,.2);border:none">✏️</button>
+        <button class="btn btn-danger btn-xs" onclick="event.stopPropagation();this.closest('div').parentElement.remove();toast('Foto dihapus','🗑','error')">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══ WILAYAH FORM ═══
+const wilayahList = [
+  { nama:'Tarakan', val:38 }, { nama:'Tanjung Selor', val:29 },
+  { nama:'Nunukan', val:24 }, { nama:'Malinau', val:18 }, { nama:'Tana Tidung', val:11 }
+];
+function initWilayahForm() {
+  document.getElementById('wilayahForm').innerHTML = '<label>Jumlah Pengaduan per Kabupaten/Kota</label>' +
+    '<div class="form-grid">' +
+    wilayahList.map(w => `<div class="form-field"><label>${w.nama}</label><input type="text" value="${w.val}"/></div>`).join('') +
+    '</div>';
+}
+function saveWilayah() { toast('Data wilayah disimpan!', '✅'); }
+function saveTren() { toast('Data tren disimpan!', '✅'); }
+function saveKPI() { toast('KPI berhasil diperbarui dan tampil di website publik!', '✅'); }
+
+// ═══ STRUKTUR JABATAN ═══
+const jabatanDef = [
+  { jabatan:'Kepala Satpol PP', nama:'' },
+  { jabatan:'Sekretariat', nama:'' },
+  { jabatan:'Bidang Penegakan Perda', nama:'' },
+  { jabatan:'Bidang Trantibumlinmas', nama:'' },
+];
+function initStrukturForm() {
+  const el = document.getElementById('jabatanList');
+  if (!el || el.children.length > 0) return;
+  jabatanDef.forEach(j => addJabatan(j.jabatan, j.nama));
+}
+function addJabatan(jab='', nama='') {
+  const el = document.getElementById('jabatanList');
+  const div = document.createElement('div');
+  div.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end';
+  div.innerHTML = `
+    <div class="form-field" style="margin:0"><label>Jabatan</label><input type="text" value="${jab}" placeholder="Nama jabatan"/></div>
+    <div class="form-field" style="margin:0"><label>Nama Pejabat</label><input type="text" value="${nama}" placeholder="Nama pejabat"/></div>
+    <button class="btn btn-danger btn-xs" style="height:36px" onclick="this.parentElement.remove()">🗑</button>
+  `;
+  el.appendChild(div);
+}
+
+// ═══ SAVE SECTION ═══
+function saveSection(sec) { toast(`Perubahan "${sec}" berhasil disimpan!`, '✅'); }
+
+// ═══ LOG ═══
+const logData = [
+  { wkt:'10 Sep 09:12', admin:'Admin Utama', aksi:'Tambah', modul:'Agenda', detail:'Tambah agenda "Operasi Reklame 10 Sep"', ip:'192.168.1.1' },
+  { wkt:'09 Sep 14:23', admin:'Budi S.', aksi:'Edit', modul:'Berita', detail:'Edit judul berita id#2', ip:'192.168.1.5' },
+  { wkt:'09 Sep 11:05', admin:'Admin Utama', aksi:'Update', modul:'KPI', detail:'Perbarui statistik Sep 2025', ip:'192.168.1.1' },
+  { wkt:'08 Sep 16:40', admin:'Rahmawati', aksi:'Tindak Lanjut', modul:'Pengaduan', detail:'Selesaikan tiket SP-UV345', ip:'192.168.1.8' },
+  { wkt:'08 Sep 09:15', admin:'Budi S.', aksi:'Upload', modul:'Galeri', detail:'Upload 3 foto operasi pasar', ip:'192.168.1.5' },
+  { wkt:'07 Sep 14:00', admin:'Admin Utama', aksi:'Tambah', modul:'Pengguna', detail:'Tambah akun: budi.s (Editor)', ip:'192.168.1.1' },
+];
+const aksiColor = { Tambah:'badge-green', Edit:'badge-blue', Update:'badge-gold', 'Tindak Lanjut':'badge-orange', Upload:'badge-blue', Hapus:'badge-red' };
+function renderLog() {
+  document.getElementById('logBody').innerHTML = logData.map(d => `
+    <tr>
+      <td style="white-space:nowrap;color:var(--text-soft)">${d.wkt}</td>
+      <td><b>${d.admin}</b></td>
+      <td><span class="badge ${aksiColor[d.aksi]||'badge-gray'}">${d.aksi}</span></td>
+      <td>${d.modul}</td>
+      <td style="font-size:12px;color:var(--text-soft)">${d.detail}</td>
+      <td style="font-size:12px;font-family:monospace;color:var(--text-soft)">${d.ip}</td>
+    </tr>
+  `).join('');
+  document.getElementById('badgeLog').style.display = 'none';
+}
+
+// ═══ LOGOUT ═══
+function logout() { if (confirm('Yakin ingin keluar dari admin panel?')) { toast('Sampai jumpa!', '👋'); setTimeout(() => window.location.href = 'satpolpp-kaltara.html', 800); } }
+
+// ═══ UTIL ═══
+function previewContent() { toast('Pratinjau dibuka di tab baru', '👁'); }
+
+// ═══ INIT ═══
+window.addEventListener('DOMContentLoaded', () => {
+  initDashChart();
+  document.getElementById('page-dashboard').classList.add('active');
+  // Keyboard shortcut ESC to close modals
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') document.querySelectorAll('.modal-backdrop').forEach(m => m.style.display = 'none');
+  });
+});
+</script>
+
+<!-- Quick util style -->
+<style>
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.subtab-panel { display: none; }
+.subtab-panel.active { display: block; }
+</style>
+</body>
+</html>

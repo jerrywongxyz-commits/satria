@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Dashboard Publik — Satpol PP Kaltara</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:wght@600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root{
+      --brand:#0a5c8a;--brand-mid:#0e7bb5;--brand-light:#d6edf7;--brand-xlight:#edf6fb;
+      --gold:#c9922a;--gold-light:#fdf3e3;--text:#12213a;--text-soft:#4a5f78;
+      --border:#dce8f0;--bg:#f0f6fb;--card:#fff;--radius:16px;
+      --green:#1a7a3e;--green-light:#e8f7ee;--red:#c0392b;--red-light:#fdecea;
+      --orange:#e67e22;--orange-light:#fef3e8;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    a{color:var(--brand);text-decoration:none}
+
+    /* topbar */
+    .topbar{background:linear-gradient(135deg,#08456d,#0a5c8a,#0d76b0);color:#fff;border-bottom:3px solid var(--gold)}
+    .top-inner{max-width:1300px;margin:auto;padding:10px 20px;display:flex;align-items:center;gap:14px}
+    .top-inner img{width:48px;height:48px;object-fit:contain}
+    .site-title b{font-size:15px;font-family:'Lora',serif}
+    .site-title small{font-size:11px;opacity:.8}
+    .back-btn{margin-left:auto;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:6px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:background .2s;flex-shrink:0}
+    .back-btn:hover{background:rgba(255,255,255,.25);color:#fff}
+
+    /* hero strip */
+    .hero-strip{background:linear-gradient(90deg,#08375a,#0a5c8a);color:#fff;padding:20px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+    .hero-strip .inner{max-width:1300px;margin:auto;padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    .hero-strip h1{font-family:'Lora',serif;font-size:22px;font-weight:700}
+    .hero-strip p{font-size:13px;color:rgba(255,255,255,.75);margin-top:4px}
+    .live-badge{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);padding:8px 16px;border-radius:999px;font-size:13px;font-weight:600}
+    .live-dot{width:8px;height:8px;border-radius:50%;background:#27ae60;animation:pulse 1.5s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .last-update{font-size:12px;color:rgba(255,255,255,.6)}
+
+    .main{max-width:1300px;margin:0 auto;padding:24px 20px}
+
+    /* KPI grid */
+    .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+    .kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;box-shadow:0 2px 12px rgba(10,92,138,.07);transition:transform .2s}
+    .kpi:hover{transform:translateY(-2px)}
+    .kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+    .kpi.blue::after{background:linear-gradient(90deg,var(--brand),var(--brand-mid))}
+    .kpi.green::after{background:linear-gradient(90deg,var(--green),#27ae60)}
+    .kpi.gold::after{background:linear-gradient(90deg,var(--gold),#f0b429)}
+    .kpi.red::after{background:linear-gradient(90deg,var(--red),#e74c3c)}
+    .kpi-icon{font-size:28px;margin-bottom:10px}
+    .kpi-num{font-size:38px;font-weight:800;line-height:1;margin-bottom:4px}
+    .kpi.blue .kpi-num{color:var(--brand)}
+    .kpi.green .kpi-num{color:var(--green)}
+    .kpi.gold .kpi-num{color:var(--gold)}
+    .kpi.red .kpi-num{color:var(--red)}
+    .kpi-label{font-size:13px;font-weight:700;color:var(--text-soft)}
+    .kpi-sub{font-size:12px;color:var(--text-soft);margin-top:4px}
+    .kpi-trend{font-size:12px;font-weight:600;margin-top:8px;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px}
+    .kpi-trend.up{background:var(--green-light);color:var(--green)}
+    .kpi-trend.down{background:var(--red-light);color:var(--red)}
+    .kpi-trend.neutral{background:var(--gold-light);color:var(--gold)}
+
+    /* grid layout */
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+    .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:18px}
+    .grid-3-1{display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:18px}
+
+    /* card */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:0 2px 12px rgba(10,92,138,.07)}
+    .card-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .card-head h3{font-size:15px;font-weight:700;font-family:'Lora',serif;display:flex;align-items:center;gap:8px}
+    .card-body{padding:20px}
+
+    /* progress bars */
+    .prog-item{margin-bottom:14px}
+    .prog-label{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:6px}
+    .prog-bar{height:10px;background:var(--border);border-radius:999px;overflow:hidden}
+    .prog-fill{height:100%;border-radius:999px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+
+    /* feed */
+    .feed{display:flex;flex-direction:column;gap:0}
+    .feed-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+    .feed-item:last-child{border-bottom:none}
+    .feed-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:5px}
+    .feed-dot.new{background:#27ae60}
+    .feed-dot.process{background:var(--orange)}
+    .feed-dot.done{background:var(--brand)}
+    .feed-text{font-size:13px;line-height:1.5}
+    .feed-text b{font-weight:700}
+    .feed-time{font-size:11px;color:var(--text-soft);margin-top:2px}
+
+    /* table */
+    .data-table{width:100%;border-collapse:collapse;font-size:13px}
+    .data-table th{background:var(--bg);color:var(--text-soft);padding:10px 14px;font-weight:700;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid var(--border)}
+    .data-table td{padding:11px 14px;border-bottom:1px solid var(--border)}
+    .data-table tr:last-child td{border-bottom:none}
+    .data-table tr:hover td{background:var(--bg)}
+    .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
+    .badge.new{background:var(--green-light);color:var(--green)}
+    .badge.process{background:var(--orange-light);color:var(--orange)}
+    .badge.done{background:var(--brand-xlight);color:var(--brand)}
+    .badge.urgent{background:var(--red-light);color:var(--red)}
+
+    /* donut label */
+    .donut-wrap{position:relative;display:flex;justify-content:center}
+    .donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
+    .donut-center b{font-size:28px;font-weight:800;color:var(--brand);display:block;line-height:1}
+    .donut-center span{font-size:11px;color:var(--text-soft);font-weight:600}
+
+    /* legend */
+    .legend{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+    .leg-item{display:flex;align-items:center;justify-content:space-between;font-size:13px}
+    .leg-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+    .leg-label{display:flex;align-items:center;gap:8px}
+    .leg-val{font-weight:700}
+
+    /* satisfaction */
+    .sat-big{font-size:64px;font-weight:800;color:var(--gold);line-height:1;text-align:center}
+    .sat-stars{text-align:center;font-size:28px;margin:6px 0}
+    .sat-label{text-align:center;font-size:13px;color:var(--text-soft)}
+    .sat-bars{margin-top:14px}
+    .sat-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px}
+    .sat-row span:first-child{width:12px;text-align:right;color:var(--text-soft)}
+    .sat-mini{flex:1;height:8px;background:var(--border);border-radius:999px;overflow:hidden}
+    .sat-mini-fill{height:100%;border-radius:999px;background:var(--gold)}
+    .sat-row span:last-child{width:30px;text-align:right;color:var(--text-soft)}
+
+    /* ticker */
+    .ticker{background:var(--brand);color:#fff;padding:8px 0;overflow:hidden}
+    .ticker-inner{white-space:nowrap;animation:ticker 30s linear infinite;display:inline-block;padding-left:100%}
+    .ticker-inner span{margin-right:60px;font-size:13px;font-weight:600}
+    .ticker-inner span::before{content:'📢 ';margin-right:4px}
+    @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+    @media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.grid-3,.grid-3-1,.grid-2{grid-template-columns:1fr}}
+    @media(max-width:600px){.kpi-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="top-inner">
+    <img src="https://simpeg.kaltaraprov.go.id/logo/ori_prov_kaltara.png" alt="Logo Kaltara"/>
+    <div class="site-title">
+      <b>Satpol PP Kalimantan Utara</b>
+      <small>Portal Resmi — Dashboard Publik</small>
+    </div>
+    <a class="back-btn" href="satpolpp-kaltara.html">← Kembali</a>
+  </div>
+</div>
+
+<!-- Ticker -->
+<div class="ticker">
+  <div class="ticker-inner" id="tickerInner">
+    <span>Operasi penertiban reklame 10 Sep 2025 — Koridor Utama</span>
+    <span>Patroli gabungan pasar 14 Sep 2025</span>
+    <span>Simulasi linmas 18 Sep — Alun-alun Kota</span>
+    <span>Pengaduan dapat disampaikan melalui WhatsApp: +62 800-0000-0000</span>
+    <span>Operasi penertiban reklame 10 Sep 2025 — Koridor Utama</span>
+    <span>Patroli gabungan pasar 14 Sep 2025</span>
+    <span>Simulasi linmas 18 Sep — Alun-alun Kota</span>
+    <span>Pengaduan dapat disampaikan melalui WhatsApp: +62 800-0000-0000</span>
+  </div>
+</div>
+
+<!-- Hero -->
+<div class="hero-strip">
+  <div class="inner">
+    <div>
+      <h1>📊 Dashboard Transparansi Kinerja</h1>
+      <p>Data agregat pengaduan & kinerja Satpol PP Kalimantan Utara — diperbarui setiap jam</p>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+      <div class="live-badge"><div class="live-dot"></div> Data Live</div>
+      <div class="last-update">Terakhir diperbarui: <span id="lastUpdate"></span></div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi blue">
+      <div class="kpi-icon">📋</div>
+      <div class="kpi-num" id="k1">120</div>
+      <div class="kpi-label">Pengaduan Masuk</div>
+      <div class="kpi-sub">Tahun 2025 berjalan</div>
+      <span class="kpi-trend up">↑ +12% vs bulan lalu</span>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-icon">✅</div>
+      <div class="kpi-num" id="k2">109</div>
+      <div class="kpi-label">Tindak Lanjut Selesai</div>
+      <div class="kpi-sub">91% tingkat penyelesaian</div>
+      <span class="kpi-trend up">↑ +5% efisiensi</span>
+    </div>
+    <div class="kpi gold">
+      <div class="kpi-icon">🚔</div>
+      <div class="kpi-num" id="k3">86</div>
+      <div class="kpi-label">Operasi Ketertiban</div>
+      <div class="kpi-sub">Total kegiatan lapangan</div>
+      <span class="kpi-trend neutral">→ Sesuai target</span>
+    </div>
+    <div class="kpi red">
+      <div class="kpi-icon">⏳</div>
+      <div class="kpi-num" id="k4">11</div>
+      <div class="kpi-label">Dalam Proses</div>
+      <div class="kpi-sub">Pengaduan aktif ditangani</div>
+      <span class="kpi-trend down">↓ Turun dari 18</span>
+    </div>
+  </div>
+
+  <!-- Row 1: Tren + Donut -->
+  <div class="grid-3-1">
+    <div class="card">
+      <div class="card-head">
+        <h3>📈 Tren Pengaduan Bulanan 2025</h3>
+        <select id="chartFilter" style="font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:8px;font-family:inherit;color:var(--text-soft)" onchange="updateChart()">
+          <option value="all">Semua Kategori</option>
+          <option value="perda">Pelanggaran Perda</option>
+          <option value="trantib">Gangguan Ketertiban</option>
+          <option value="linmas">Perlindungan Masyarakat</option>
+        </select>
+      </div>
+      <div class="card-body">
+        <canvas id="trendChart" height="200"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>🍩 Komposisi Pengaduan</h3></div>
+      <div class="card-body">
+        <div class="donut-wrap">
+          <canvas id="donutChart" width="180" height="180" style="max-width:180px"></canvas>
+          <div class="donut-center"><b>120</b><span>Total</span></div>
+        </div>
+        <div class="legend">
+          <div class="leg-item"><div class="leg-label"><div class="leg-dot" style="background:#0a5c8a"></div>Pelanggaran Perda</div><div class="leg-val">52</div></div>
+          <div class="leg-item"><div class="leg-label"><div class="leg-dot" style="background:#0e7bb5"></div>Gangguan Ketertiban</div><div class="leg-val">35</div></div>
+          <div class="leg-item"><div class="leg-label"><div class="leg-dot" style="background:#c9922a"></div>Ketentraman Masy.</div><div class="leg-val">21</div></div>
+          <div class="leg-item"><div class="leg-label"><div class="leg-dot" style="background:#27ae60"></div>Perlindungan Masy.</div><div class="leg-val">12</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Wilayah + Feed + Kepuasan -->
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-head"><h3>📍 Pengaduan per Wilayah</h3></div>
+      <div class="card-body">
+        <div class="prog-item">
+          <div class="prog-label"><span>Tarakan</span><span style="color:var(--brand);font-weight:800">38</span></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:78%;background:linear-gradient(90deg,#0a5c8a,#0e7bb5)"></div></div>
+        </div>
+        <div class="prog-item">
+          <div class="prog-label"><span>Tanjung Selor</span><span style="color:var(--brand);font-weight:800">29</span></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:60%;background:linear-gradient(90deg,#0a5c8a,#0e7bb5)"></div></div>
+        </div>
+        <div class="prog-item">
+          <div class="prog-label"><span>Nunukan</span><span style="color:var(--brand);font-weight:800">24</span></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:50%;background:linear-gradient(90deg,#c9922a,#f0b429)"></div></div>
+        </div>
+        <div class="prog-item">
+          <div class="prog-label"><span>Malinau</span><span style="color:var(--brand);font-weight:800">18</span></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:37%;background:linear-gradient(90deg,#27ae60,#52c77a)"></div></div>
+        </div>
+        <div class="prog-item" style="margin-bottom:0">
+          <div class="prog-label"><span>Tana Tidung</span><span style="color:var(--brand);font-weight:800">11</span></div>
+          <div class="prog-bar"><div class="prog-fill" style="width:22%;background:linear-gradient(90deg,#27ae60,#52c77a)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>⚡ Aktivitas Terkini</h3><span style="font-size:12px;color:var(--text-soft)" id="feedCount"></span></div>
+      <div class="card-body" style="padding:12px 20px">
+        <div class="feed" id="activityFeed"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>⭐ Indeks Kepuasan Layanan</h3></div>
+      <div class="card-body">
+        <div class="sat-big">4.6</div>
+        <div class="sat-stars">⭐⭐⭐⭐⭐</div>
+        <div class="sat-label">dari 5.0 — berdasarkan 247 responden</div>
+        <div class="sat-bars">
+          <div class="sat-row"><span>5</span><div class="sat-mini"><div class="sat-mini-fill" style="width:68%"></div></div><span>168</span></div>
+          <div class="sat-row"><span>4</span><div class="sat-mini"><div class="sat-mini-fill" style="width:22%"></div></div><span>54</span></div>
+          <div class="sat-row"><span>3</span><div class="sat-mini"><div class="sat-mini-fill" style="width:8%"></div></div><span>19</span></div>
+          <div class="sat-row"><span>2</span><div class="sat-mini"><div class="sat-mini-fill" style="width:3%"></div></div><span>5</span></div>
+          <div class="sat-row"><span>1</span><div class="sat-mini"><div class="sat-mini-fill" style="width:0%"></div></div><span>1</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 3: Tabel Terbaru -->
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-head">
+      <h3>📋 Daftar Pengaduan Terbaru (Publik)</h3>
+      <span style="font-size:12px;color:var(--text-soft)">Data dianonimkan sesuai UU PDP</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead>
+          <tr><th>No. Tiket</th><th>Kategori</th><th>Wilayah</th><th>Tanggal</th><th>Status</th><th>Waktu Respons</th></tr>
+        </thead>
+        <tbody id="reportTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Update timestamp ──
+function setTimestamp(){
+  const now = new Date();
+  document.getElementById('lastUpdate').textContent =
+    now.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) + ' ' +
+    now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) + ' WITA';
+}
+setTimestamp();
+setInterval(setTimestamp, 60000);
+
+// ── Trend Chart ──
+const trendData = {
+  all:   [40,52,48,60,71,63,58,77,66,54,49,45],
+  perda: [18,22,20,26,31,27,24,33,28,23,21,19],
+  trantib:[12,15,14,18,22,19,17,23,20,16,14,13],
+  linmas:[10,15,14,16,18,17,17,21,18,15,14,13],
+};
+let trendChart;
+function initTrendChart(){
+  const ctx = document.getElementById('trendChart').getContext('2d');
+  trendChart = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],
+      datasets:[{
+        label:'Pengaduan',
+        data: trendData.all,
+        backgroundColor:'rgba(10,92,138,.15)',
+        borderColor:'#0a5c8a',
+        borderWidth:2,
+        borderRadius:6,
+        borderSkipped:false,
+      },{
+        type:'line',
+        label:'Tren',
+        data: trendData.all,
+        borderColor:'#c9922a',
+        borderWidth:2,
+        pointBackgroundColor:'#c9922a',
+        pointRadius:3,
+        tension:.4,
+        fill:false,
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{display:false}},
+      scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}
+    }
+  });
+}
+function updateChart(){
+  const key = document.getElementById('chartFilter').value;
+  trendChart.data.datasets[0].data = trendData[key];
+  trendChart.data.datasets[1].data = trendData[key];
+  trendChart.update();
+}
+
+// ── Donut Chart ──
+function initDonut(){
+  const ctx = document.getElementById('donutChart').getContext('2d');
+  new Chart(ctx,{
+    type:'doughnut',
+    data:{
+      labels:['Pelanggaran Perda','Gangguan Ketertiban','Ketentraman','Perlindungan'],
+      datasets:[{data:[52,35,21,12],backgroundColor:['#0a5c8a','#0e7bb5','#c9922a','#27ae60'],borderWidth:0,hoverOffset:6}]
+    },
+    options:{responsive:false,cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+ctx.parsed+' kasus'}}}}
+  });
+}
+
+// ── Activity Feed ──
+const activities = [
+  {type:'new',text:'Pengaduan baru diterima — <b>Pelanggaran Perda</b>, Tarakan',time:'5 menit lalu'},
+  {type:'done',text:'Tiket SP-XYZ99 <b>diselesaikan</b> oleh Bidang Penegakan',time:'23 menit lalu'},
+  {type:'process',text:'Operasi penertiban PKL dimulai di <b>Tanjung Selor</b>',time:'1 jam lalu'},
+  {type:'done',text:'Tiket SP-ABC12 tindak lanjut <b>diteruskan ke lapangan</b>',time:'2 jam lalu'},
+  {type:'new',text:'Pengaduan baru — <b>Gangguan Ketertiban</b>, Nunukan',time:'3 jam lalu'},
+  {type:'process',text:'Patroli gabungan berlangsung di <b>Pasar Induk</b>',time:'4 jam lalu'},
+];
+function initFeed(){
+  const el = document.getElementById('activityFeed');
+  document.getElementById('feedCount').textContent = activities.length + ' aktivitas';
+  el.innerHTML = activities.map(a=>`
+    <div class="feed-item">
+      <div class="feed-dot ${a.type}"></div>
+      <div><div class="feed-text">${a.text}</div><div class="feed-time">🕐 ${a.time}</div></div>
+    </div>
+  `).join('');
+}
+
+// ── Report Table ──
+const reports = [
+  {id:'SP-DE123',cat:'Pelanggaran Perda',wil:'Tarakan',tgl:'09 Sep 2025',status:'done',resp:'2 jam'},
+  {id:'SP-MN456',cat:'Gangguan Ketertiban',wil:'Tanjung Selor',tgl:'08 Sep 2025',status:'done',resp:'5 jam'},
+  {id:'SP-GH789',cat:'Ketentraman Masy.',wil:'Nunukan',tgl:'07 Sep 2025',status:'process',resp:'—'},
+  {id:'SP-QR012',cat:'Pelanggaran Perda',wil:'Malinau',tgl:'06 Sep 2025',status:'process',resp:'—'},
+  {id:'SP-UV345',cat:'Perlindungan Masy.',wil:'Tarakan',tgl:'05 Sep 2025',status:'done',resp:'1 jam'},
+  {id:'SP-WX678',cat:'Gangguan Ketertiban',wil:'Tana Tidung',tgl:'04 Sep 2025',status:'done',resp:'8 jam'},
+];
+const statusLabel = {done:'<span class="badge done">✓ Selesai</span>',process:'<span class="badge process">⏳ Proses</span>',new:'<span class="badge new">● Baru</span>',urgent:'<span class="badge urgent">! Mendesak</span>'};
+function initTable(){
+  document.getElementById('reportTable').innerHTML = reports.map(r=>`
+    <tr>
+      <td style="font-weight:700;color:var(--brand)">${r.id}</td>
+      <td>${r.cat}</td>
+      <td>${r.wil}</td>
+      <td>${r.tgl}</td>
+      <td>${statusLabel[r.status]}</td>
+      <td style="color:var(--text-soft)">${r.resp}</td>
+    </tr>
+  `).join('');
+}
+
+// ── Count-up animation ──
+function countUp(el, target, duration=1500){
+  const start = Date.now();
+  function update(){
+    const elapsed = Date.now() - start;
+    const progress = Math.min(elapsed/duration,1);
+    const ease = 1 - Math.pow(1-progress,3);
+    el.textContent = Math.round(ease*target);
+    if(progress<1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  initTrendChart();
+  initDonut();
+  initFeed();
+  initTable();
+  setTimeout(()=>{
+    countUp(document.getElementById('k1'),120);
+    countUp(document.getElementById('k2'),109);
+    countUp(document.getElementById('k3'),86);
+    countUp(document.getElementById('k4'),11);
+  },300);
+});
+</script>
+</body>
+</html>

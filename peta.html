@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Peta Choropleth - Kabupaten</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { height: 100vh; width: 100%; }
+        .info {
+            padding: 6px 8px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            background: white;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+        .info h4 {
+            margin: 0 0 5px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+// === Konfigurasi ===
+const GEOJSON_URL = "Kalut.geojson"; // Ganti dengan URL/file Anda
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQlo4EDlQMWwT52h7P3A2F-DjAPm4a2R1AnRXB6zHotRU-IOLxQ0j4f_XSrzPwg0abLmM36sO7X9vsA/pub?gid=0&single=true&output=csv";
+
+// Inisialisasi peta
+const map = L.map('map').setView([1.5, 116.0], 7);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+// Warna untuk chloropeth
+function getColor(d) {
+    return d > 10 ? '#800026' :
+           d > 5  ? '#BD0026' :
+           d > 2  ? '#E31A1C' :
+           d > 0  ? '#FC4E2A' :
+                    '#FFEDA0';
+}
+
+function style(feature) {
+    return {
+        fillColor: getColor(aduanPerKabupaten[feature.properties.kabupaten] || 0),
+        weight: 2,
+        opacity: 1,
+        color: 'white',
+        dashArray: '3',
+        fillOpacity: 0.7
+    };
+}
+// === Legenda ===
+const legend = L.control({position: 'bottomright'});
+legend.onAdd = function (map) {
+    const div = L.DomUtil.create('div', 'info legend');
+    const grades = [1, 10, 50, 100];
+    const labels = [];
+    
+    // Label pertama: < 10
+    labels.push(
+        '<i style="background:' + getColor(5) + '"></i> < 10'
+    );
+    
+    // Label tengah: 10 - 49, 50 - 99
+    for (let i = 0; i < grades.length - 1; i++) {
+        labels.push(
+            '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' +
+            grades[i] + ' – ' + (grades[i + 1] - 1)
+        );
+    }
+    
+    // Label terakhir: > 99 (karena kita batasi 100, jadi >99 = 100)
+    labels.push(
+        '<i style="background:' + getColor(100) + '"></i> 100+'
+    );
+
+    div.innerHTML = '<h4>Jumlah Aduan</h4>' + labels.join('<br>');
+    return div;
+};
+legend.addTo(map);
+// Informasi popup/hover
+function highlightFeature(e) {
+    const layer = e.target;
+    layer.setStyle({
+        weight: 5,
+        color: '#666',
+        dashArray: '',
+        fillOpacity: 0.9
+    });
+    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        layer.bringToFront();
+    }
+    info.update(layer.feature.properties);
+}
+
+function resetHighlight(e) {
+    geojson.resetStyle(e.target);
+    info.update();
+}
+
+function zoomToFeature(e) {
+    map.fitBounds(e.target.getBounds());
+}
+
+// Popup info panel
+const info = L.control();
+info.onAdd = function (map) {
+    this._div = L.DomUtil.create('div', 'info');
+    this.update();
+    return this._div;
+};
+info.update = function (props) {
+    this._div.innerHTML = '<h4>Jumlah Aduan</h4>' +  (props ?
+        '<b>' + props.kabupaten + '</b><br />' + (aduanPerKabupaten[props.kabupaten] || 0) + ' aduan'
+        : 'Arahkan kursor ke wilayah');
+};
+info.addTo(map);
+
+// Simpan data
+let aduanPerKabupaten = {};
+let geojson;
+
+// === Fungsi Bantu ===
+function parseCSV(csvText) {
+    const rows = [];
+    let currentRow = [];
+    let currentCell = '';
+    let inQuotes = false;
+    for (let i = 0; i < csvText.length; i++) {
+        const char = csvText[i];
+        if (char === '"') inQuotes = !inQuotes;
+        else if (char === ',' && !inQuotes) { currentRow.push(currentCell); currentCell = ''; }
+        else if ((char === '\n' || char === '\r') && !inQuotes) {
+            currentRow.push(currentCell);
+            rows.push(currentRow);
+            currentRow = []; currentCell = '';
+            if (char === '\r' && csvText[i + 1] === '\n') i++;
+        } else currentCell += char;
+    }
+    if (currentCell || currentRow.length > 0) { currentRow.push(currentCell); rows.push(currentRow); }
+    return rows;
+}
+
+// === Ambil data CSV ===
+fetch(CSV_URL)
+    .then(response => response.text())
+    .then(csvText => {
+        const rows = parseCSV(csvText).filter(r => r.length > 0);
+        if (rows.length < 2) throw new Error('CSV kosong');
+
+        const headers = rows[0].map(h => h.trim());
+        const dataRows = rows.slice(1).map(row => {
+            const obj = {};
+            headers.forEach((h, i) => obj[h] = row[i] ? row[i].trim() : '');
+            return obj;
+        });
+
+        // Hitung aduan per kabupaten
+        aduanPerKabupaten = {};
+        dataRows.forEach(row => {
+            const kab = row['DOMISILI'];
+            if (kab) {
+                aduanPerKabupaten[kab] = (aduanPerKabupaten[kab] || 0) + 1;
+            }
+        });
+
+        // Muat GeoJSON
+        return fetch(GEOJSON_URL).then(r => r.json());
+    })
+    .then(geojsonData => {
+        geojson = L.geoJSON(geojsonData, {
+            style: style,
+            onEachFeature: function (feature, layer) {
+                layer.on({
+                    mouseover: highlightFeature,
+                    mouseout: resetHighlight,
+                    click: zoomToFeature
+                });
+            }
+        }).addTo(map);
+
+        // Zoom ke batas data
+        map.fitBounds(geojson.getBounds());
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Gagal memuat peta: ' + error.message);
+    });
+</script>
+</body>
+</html>

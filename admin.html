@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Laporan TRC</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            text-align: center;
+        }
+        #controls {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        #searchInput {
+            padding: 8px;
+            width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        #table-container {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #e9ecef;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover {
+            background-color: #dfe5e8;
+        }
+        .sort-asc::after {
+            content: " ↑";
+            color: #007bff;
+        }
+        .sort-desc::after {
+            content: " ↓";
+            color: #007bff;
+        }
+
+        /* Highlight Status */
+        .status-confirmed { background-color: #ffebee !important; }
+        .status-ditangani  { background-color: #fff3cd !important; }
+        .status-selesai    { background-color: #e8f5e9 !important; }
+
+        #pagination {
+            margin-top: 15px;
+            text-align: center;
+        }
+        .pagination-btn {
+            margin: 0 5px;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .pagination-btn.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        .pagination-btn:hover:not(.active) {
+            background: #f1f1f1;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .close {
+            float: right;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .modal-content h2 {
+            margin-top: 0;
+        }
+        .modal-row {
+            margin-bottom: 10px;
+        }
+        .modal-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 220px;
+            vertical-align: top;
+        }
+        .modal-value {
+            display: inline-block;
+            width: calc(100% - 230px);
+            word-break: break-word;
+        }
+        .modal-value a {
+            color: #007bff;
+            text-decoration: underline;
+        }
+        .modal-value a:hover {
+            color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Laporan TRC</h1>
+
+    <div id="controls">
+        <input type="text" id="searchInput" placeholder="Cari laporan..." />
+        <div>
+            <label>Jumlah per halaman:
+                <select id="rowsPerPage">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </label>
+        </div>
+    </div>
+
+    <div id="table-container">Memuat data...</div>
+
+    <div id="pagination"></div>
+
+    <!-- Modal -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Detail Laporan</h2>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQlo4EDlQMWwT52h7P3A2F-DjAPm4a2R1AnRXB6zHotRU-IOLxQ0j4f_XSrzPwg0abLmM36sO7X9vsA/pub?gid=0&single=true&output=csv";
+
+        const MONTHS = [
+            "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        ];
+
+        // ==== Fungsi Bantu ====
+        function formatDateTime(dateStr) {
+            if (!dateStr) return '';
+            let d = new Date(dateStr.replace(' ', 'T'));
+            if (!isNaN(d.getTime())) {
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = MONTHS[d.getMonth()];
+                const year = d.getFullYear();
+                const hours = String(d.getHours()).padStart(2, '0');
+                const minutes = String(d.getMinutes()).padStart(2, '0');
+                const seconds = String(d.getSeconds()).padStart(2, '0');
+                return `${day} ${month} ${year} ${hours}:${minutes}:${seconds}`;
+            }
+            const regex = /^(\d{4})-(\d{1,2})-(\d{1,2})\s+(\d{1,2}):(\d{1,2}):(\d{1,2})$/;
+            const match = dateStr.match(regex);
+            if (match) {
+                const [, year, month, day, hour, minute, second] = match;
+                const paddedDay = String(parseInt(day)).padStart(2, '0');
+                const paddedHour = String(parseInt(hour)).padStart(2, '0');
+                const paddedMinute = String(parseInt(minute)).padStart(2, '0');
+                const paddedSecond = String(parseInt(second)).padStart(2, '0');
+                if (parseInt(month) < 1 || parseInt(month) > 12) return dateStr;
+                const monthName = MONTHS[parseInt(month) - 1];
+                return `${paddedDay} ${monthName} ${year} ${paddedHour}:${paddedMinute}:${paddedSecond}`;
+            }
+            return dateStr;
+        }
+
+        function parseCSV(csvText) {
+            const rows = [];
+            let currentRow = [];
+            let currentCell = '';
+            let inQuotes = false;
+            for (let i = 0; i < csvText.length; i++) {
+                const char = csvText[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    currentRow.push(currentCell);
+                    currentCell = '';
+                } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                    currentRow.push(currentCell);
+                    rows.push(currentRow);
+                    currentRow = [];
+                    currentCell = '';
+                    if (char === '\r' && csvText[i + 1] === '\n') i++;
+                } else {
+                    currentCell += char;
+                }
+            }
+            if (currentCell || currentRow.length > 0) {
+                currentRow.push(currentCell);
+                rows.push(currentRow);
+            }
+            return rows;
+        }
+
+        function makeLinksClickable(text) {
+            if (!text) return '';
+            const urlPattern = /(https?:\/\/[^\s]+[^\s.,;:!?)]|[^\s]+\.(?:jpg|jpeg|png|gif|pdf|mp4|mov|avi)(?![^\s]*[.,;:!?)]))/gi;
+            let escaped = text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "<")
+                .replace(/>/g, ">")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+            return escaped.replace(urlPattern, (url) => {
+                let fullUrl = url;
+                if (!url.startsWith('http')) {
+                    fullUrl = 'https://' + url;
+                }
+                return `<a href="${fullUrl}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+            });
+        }
+
+        function formatPhoneNumber(phone) {
+            if (!phone) return '';
+            phone = phone.toString().trim();
+            if (phone.startsWith('0')) return phone;
+            if (phone.startsWith('+62')) return '0' + phone.substring(3);
+            return '0' + phone;
+        }
+
+        function getUrusan(layanan) {
+            if (layanan === '1') return 'Satpol PP';
+            if (layanan === '2') return 'Damkar';
+            return 'Lainnya';
+        }
+
+        // ==== State Global ====
+        let allData = [];
+        let filteredData = [];
+        let headers = [];
+        let currentPage = 1;
+        let rowsPerPage = 10;
+        let sortBy = null;      // kolom yang disortir
+        let sortDir = 'asc';    // 'asc' atau 'desc'
+
+        // ==== Sorting ====
+function sortData() {
+    if (!sortBy) {
+        // Default: urutkan berdasarkan Tanggal (terbaru dulu)
+        filteredData.sort((a, b) => {
+            const dateA = new Date(a['Tanggal'].replace(' ', 'T'));
+            const dateB = new Date(b['Tanggal'].replace(' ', 'T'));
+            if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
+                // Jika gagal parse, urutkan sebagai string
+                return (a['Tanggal'] || '').localeCompare(b['Tanggal'] || '');
+            }
+            return dateB - dateA; // descending
+        });
+        return;
+    }
+
+    // Sort berdasarkan kolom yang diklik
+    filteredData.sort((a, b) => {
+        let valA = a[sortBy] || '';
+        let valB = b[sortBy] || '';
+
+        // Jika sortBy adalah "Tanggal", gunakan Date
+        if (sortBy === 'Tanggal') {
+            const dateA = new Date(valA.replace(' ', 'T'));
+            const dateB = new Date(valB.replace(' ', 'T'));
+            if (!isNaN(dateA.getTime()) && !isNaN(dateB.getTime())) {
+                return sortDir === 'asc' ? dateA - dateB : dateB - dateA;
+            }
+            // Fallback ke string
+            return sortDir === 'asc' 
+                ? valA.localeCompare(valB) 
+                : valB.localeCompare(valA);
+        }
+
+        // Untuk kolom lain
+        const numA = parseFloat(valA);
+        const numB = parseFloat(valB);
+        if (!isNaN(numA) && !isNaN(numB)) {
+            valA = numA;
+            valB = numB;
+        } else {
+            valA = String(valA).toLowerCase();
+            valB = String(valB).toLowerCase();
+        }
+
+        if (valA < valB) return sortDir === 'asc' ? -1 : 1;
+        if (valA > valB) return sortDir === 'asc' ? 1 : -1;
+        return 0;
+    });
+}
+
+        // ==== Render Tabel ====
+        function renderTable() {
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const pageData = filteredData.slice(start, end);
+
+            const DISPLAY_COLUMNS = [
+                "Tanggal", "Urusan", "Jenis Pelanggaran", "Detail Aduan",
+                "Kabupaten/Kota", "Lokasi", "Status", "Waktu Respons", "PIC TRC"
+            ];
+
+            let tableHtml = `<table><thead><tr>`;
+            DISPLAY_COLUMNS.forEach(col => {
+                let thClass = '';
+                if (sortBy === col) {
+                    thClass = sortDir === 'asc' ? 'sort-asc' : 'sort-desc';
+                }
+                tableHtml += `<th class="${thClass}" data-col="${col}">${col}</th>`;
+            });
+            tableHtml += `</tr></thead><tbody>`;
+
+            pageData.forEach((row, idx) => {
+                let rowClass = '';
+                const status = (row['Status'] || '').toLowerCase().trim();
+                if (status === 'confirmed') {
+                    rowClass = 'status-confirmed';
+                } else if (status === 'ditangani') {
+                    rowClass = 'status-ditangani';
+                } else if (status === 'selesai') {
+                    rowClass = 'status-selesai';
+                }
+
+                tableHtml += `<tr data-idx="${start + idx}" class="${rowClass}">`;
+                DISPLAY_COLUMNS.forEach(col => {
+                    const value = row[col] || '';
+                    tableHtml += `<td>${makeLinksClickable(value)}</td>`;
+                });
+                tableHtml += `</tr>`;
+            });
+
+            tableHtml += `</tbody></table>`;
+            document.getElementById('table-container').innerHTML = tableHtml;
+
+            // Pasang event klik header
+            document.querySelectorAll('#table-container th[data-col]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const col = th.getAttribute('data-col');
+                    if (sortBy === col) {
+                        sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        sortBy = col;
+                        sortDir = 'asc';
+                    }
+                    sortData();
+                    currentPage = 1;
+                    renderTable();
+                    renderPagination();
+                });
+            });
+
+            // Pasang event klik baris
+            document.querySelectorAll('#table-container tr[data-idx]').forEach(tr => {
+                tr.addEventListener('click', function () {
+                    const globalIdx = filteredData.indexOf(allData[parseInt(this.getAttribute('data-idx'))]);
+                    // Tidak bisa pakai data-idx langsung karena urutan berubah saat sort
+                    // Solusi: cari indeks di filteredData
+                    // Tapi lebih mudah: simpan index asli di data
+                    // Alternatif: gunakan data asli tanpa sort untuk modal → kita tetap tampilkan data asli
+                    // Kita ambil index dari filteredData saat ini
+                    const idxInFiltered = Array.from(document.querySelectorAll('#table-container tr[data-idx]')).indexOf(tr);
+                    const globalItem = filteredData[start + idxInFiltered];
+                    const originalIndex = allData.findIndex(item => 
+                        item['NoTiket'] === globalItem['NoTiket'] // asumsi NoTiket unik
+                    );
+                    showDetailModal(originalIndex);
+                });
+            });
+        }
+
+        // ==== Modal ====
+        function showDetailModal(globalIdx) {
+            const data = allData[globalIdx];
+            const HIDE_IN_MODAL = [
+                'Mode', 'From', 'Tanggal', 'Urusan', 'Jenis Pelanggaran', 'Lokasi'
+            ];
+
+            let modalContent = '';
+            for (const key of headers) {
+                if (HIDE_IN_MODAL.includes(key)) continue;
+
+                let value = data[key];
+                if (key === 'Waktu Laporan') {
+                    value = formatDateTime(value);
+                } else if (key === 'Nomor Telepon') {
+                    value = formatPhoneNumber(value);
+                } else if (key === 'layanan') {
+                    value = getUrusan(value);
+                }
+
+                const formattedValue = makeLinksClickable(value);
+                modalContent += `
+                    <div class="modal-row">
+                        <span class="modal-label">${key}:</span>
+                        <span class="modal-value">${formattedValue}</span>
+                    </div>
+                `;
+            }
+            document.getElementById('modal-body').innerHTML = modalContent;
+            document.getElementById('detailModal').style.display = 'block';
+        }
+
+        // ==== Pagination ====
+        function renderPagination() {
+            const total = filteredData.length;
+            const totalPages = Math.ceil(total / rowsPerPage);
+            if (totalPages <= 1) {
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
+
+            let html = `<button class="pagination-btn ${currentPage === 1 ? 'active' : ''}" onclick="goToPage(1)">Awal</button>`;
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+            if (startPage > 1) {
+                html += `<span>...</span>`;
+            }
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+            }
+            if (endPage < totalPages) {
+                html += `<span>...</span>`;
+            }
+            html += `<button class="pagination-btn ${currentPage === totalPages ? 'active' : ''}" onclick="goToPage(${totalPages})">Akhir</button>`;
+            document.getElementById('pagination').innerHTML = html;
+        }
+
+        window.goToPage = function(page) {
+            const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+            currentPage = Math.max(1, Math.min(page, totalPages));
+            renderTable();
+            renderPagination();
+        };
+
+        // ==== Pencarian ====
+        function applySearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            if (query === '') {
+                filteredData = [...allData];
+            } else {
+                filteredData = allData.filter(row => {
+                    return Object.values(row).some(val =>
+                        val && val.toString().toLowerCase().includes(query)
+                    );
+                });
+            }
+            sortBy = null; // reset sort saat pencarian
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+        }
+
+        // ==== Fetch Data ====
+        fetch(CSV_URL)
+            .then(response => {
+                if (!response.ok) throw new Error('Gagal mengambil data CSV');
+                return response.text();
+            })
+            .then(csvText => {
+                const rawRows = parseCSV(csvText).filter(row => row.length > 0);
+                if (rawRows.length < 2) {
+                    document.getElementById('table-container').innerHTML = '<p>Tidak ada data.</p>';
+                    return;
+                }
+
+                headers = rawRows[0].map(h => h.trim());
+                const dataRows = rawRows.slice(1);
+
+                const required = [
+                    'layanan', 'Waktu Laporan', 'KLASIFIKASI',
+                    'Lokasi dan Alamat Lengkap Terjadinya Pelanggaran', 'DETAIL', 'DOMISILI'
+                ];
+                const missing = required.filter(col => !headers.includes(col));
+                if (missing.length > 0) {
+                    console.error('Kolom wajib tidak ditemukan:', missing);
+                    document.getElementById('table-container').innerHTML = `<p>Error: Kolom berikut tidak ditemukan di CSV: ${missing.join(', ')}</p>`;
+                    return;
+                }
+
+                const fullData = dataRows.map(row => {
+                    const obj = {};
+                    headers.forEach((h, i) => {
+                        obj[h] = row[i] !== undefined ? row[i].trim() : '';
+                    });
+                    return obj;
+                });
+
+                            // ... (bagian sebelumnya tetap sama) ...
+
+            allData = fullData.map(row => {
+                return {
+                    ...row,
+                    Tanggal: formatDateTime(row['Waktu Laporan'] || ''),
+                    Urusan: getUrusan(row['layanan']),
+                    "Jenis Pelanggaran": row['KLASIFIKASI'] || '',
+                    "Detail Aduan": row['DETAIL'] || '',
+                    "Kabupaten/Kota": row['DOMISILI'] || '',
+                    Lokasi: row['Lokasi dan Alamat Lengkap Terjadinya Pelanggaran'] || '',
+                    "Waktu Respons": row['Waktu Respon Level']+ " menit" || '',
+                    "PIC TRC": row['PIC'] || ''
+                };
+            });
+
+            filteredData = [...allData];
+
+            // 🔥 SORT DEFAULT: Tanggal terbaru dulu
+            sortBy = "Tanggal";
+            sortDir = "desc";
+            sortData();
+
+            renderTable();
+            renderPagination();
+
+            // ... (event listener tetap sama) ...
+
+                // Event listener
+                document.getElementById('searchInput').addEventListener('input', applySearch);
+                document.getElementById('rowsPerPage').addEventListener('change', (e) => {
+                    rowsPerPage = parseInt(e.target.value);
+                    currentPage = 1;
+                    renderTable();
+                    renderPagination();
+                });
+
+                // Modal close
+                document.querySelector('.close').addEventListener('click', () => {
+                    document.getElementById('detailModal').style.display = 'none';
+                });
+                window.addEventListener('click', (e) => {
+                    if (e.target === document.getElementById('detailModal')) {
+                        document.getElementById('detailModal').style.display = 'none';
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('table-container').innerHTML = `<p>Gagal memuat: ${error.message}</p>`;
+            });
+    </script>
+</body>
+</html>

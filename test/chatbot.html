@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Asisten AI — Satpol PP Kaltara</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --brand:#0a5c8a;--brand-mid:#0e7bb5;--brand-light:#d6edf7;--brand-xlight:#edf6fb;
+      --gold:#c9922a;--text:#12213a;--text-soft:#4a5f78;--border:#dce8f0;
+      --bg:#f4f8fb;--bg-card:#fff;--radius:16px;--shadow:0 2px 16px rgba(10,92,138,.09);
+      --user-bg:#0a5c8a;--bot-bg:#fff;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);height:100dvh;display:flex;flex-direction:column}
+    a{color:var(--brand);text-decoration:none}
+
+    /* ── topbar ── */
+    .topbar{background:linear-gradient(135deg,#08456d,#0a5c8a,#0d76b0);color:#fff;border-bottom:3px solid var(--gold);flex-shrink:0}
+    .top-inner{max-width:900px;margin:auto;padding:10px 16px;display:flex;align-items:center;gap:14px}
+    .top-inner img{width:48px;height:48px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.2))}
+    .site-title b{font-size:15px;font-family:'Lora',serif}
+    .site-title small{font-size:11px;opacity:.8}
+    .back-btn{margin-left:auto;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:6px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:background .2s}
+    .back-btn:hover{background:rgba(255,255,255,.25);color:#fff}
+
+    /* ── chat layout ── */
+    .chat-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column;max-width:900px;width:100%;margin:0 auto;padding:16px 16px 0}
+    .chat-header{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:12px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)}
+    .bot-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-mid));display:grid;place-items:center;font-size:22px;flex-shrink:0;box-shadow:0 4px 12px rgba(10,92,138,.3)}
+    .bot-info b{font-size:15px}
+    .bot-info small{color:var(--text-soft);font-size:13px}
+    .status-dot{width:9px;height:9px;border-radius:50%;background:#27ae60;display:inline-block;margin-right:5px;box-shadow:0 0 0 2px rgba(39,174,96,.2)}
+    .status-online{font-size:12px;color:#27ae60;font-weight:600}
+
+    .messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 0 16px;scroll-behavior:smooth}
+    .messages::-webkit-scrollbar{width:4px}
+    .messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:999px}
+
+    .msg{display:flex;gap:10px;animation:fadeUp .25s ease}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .msg.user{flex-direction:row-reverse}
+    .msg-avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:16px}
+    .msg.bot .msg-avatar{background:linear-gradient(135deg,var(--brand),var(--brand-mid));color:#fff}
+    .msg.user .msg-avatar{background:var(--brand-light);color:var(--brand)}
+    .bubble{max-width:72%;padding:12px 16px;border-radius:18px;font-size:14px;line-height:1.6}
+    .msg.bot .bubble{background:var(--bot-bg);border:1px solid var(--border);border-bottom-left-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+    .msg.user .bubble{background:var(--user-bg);color:#fff;border-bottom-right-radius:4px}
+    .bubble p{margin-bottom:6px}
+    .bubble p:last-child{margin-bottom:0}
+    .bubble ul{padding-left:16px;margin:4px 0}
+    .bubble ul li{margin-bottom:3px}
+    .bubble .chip{display:inline-block;background:var(--brand-xlight);color:var(--brand);border:1px solid var(--brand-light);padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;margin:3px 3px 0 0;cursor:pointer;transition:background .15s}
+    .bubble .chip:hover{background:var(--brand-light)}
+    .msg-time{font-size:11px;color:var(--text-soft);margin-top:4px;padding:0 4px}
+
+    .typing-indicator{display:flex;gap:4px;align-items:center;padding:14px 16px}
+    .typing-indicator span{width:7px;height:7px;border-radius:50%;background:var(--brand-light);animation:bounce .9s infinite}
+    .typing-indicator span:nth-child(2){animation-delay:.15s}
+    .typing-indicator span:nth-child(3){animation-delay:.3s}
+    @keyframes bounce{0%,60%,100%{transform:none}30%{transform:translateY(-6px);background:var(--brand)}}
+
+    /* ── quick replies ── */
+    .quick-replies{display:flex;gap:8px;flex-wrap:wrap;padding:8px 0 12px}
+    .qr-btn{background:var(--bg-card);border:1.5px solid var(--border);color:var(--text);padding:7px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .18s}
+    .qr-btn:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-xlight)}
+
+    /* ── input area ── */
+    .input-area{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;display:flex;gap:10px;align-items:flex-end;box-shadow:var(--shadow);margin-bottom:16px}
+    .input-area textarea{flex:1;border:none;outline:none;resize:none;font-family:inherit;font-size:14px;color:var(--text);max-height:120px;min-height:40px;line-height:1.5;background:transparent}
+    .send-btn{width:42px;height:42px;border-radius:50%;background:var(--brand);border:none;cursor:pointer;display:grid;place-items:center;flex-shrink:0;transition:background .2s,transform .15s;box-shadow:0 2px 8px rgba(10,92,138,.3)}
+    .send-btn:hover{background:var(--brand-mid);transform:scale(1.05)}
+    .send-btn svg{width:18px;height:18px;fill:#fff}
+
+    /* ── disclaimer ── */
+    .disclaimer{text-align:center;font-size:11px;color:var(--text-soft);padding:0 16px 12px;max-width:900px;margin:0 auto}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="top-inner">
+    <img src="https://simpeg.kaltaraprov.go.id/logo/ori_prov_kaltara.png" alt="Logo Kaltara"/>
+    <div class="site-title">
+      <b>Satpol PP Kalimantan Utara</b>
+      <small>Portal Resmi — Asisten AI</small>
+    </div>
+    <a class="back-btn" href="satpolpp-kaltara.html">← Kembali</a>
+  </div>
+</div>
+
+<div class="chat-wrap">
+  <div class="chat-header">
+    <div class="bot-avatar">🤖</div>
+    <div class="bot-info">
+      <b>SIPA — Sistem Informasi &amp; Pengaduan Asisten</b><br>
+      <span class="status-dot"></span><span class="status-online">Online</span>
+      <small style="margin-left:10px;color:var(--text-soft)">Satpol PP Kaltara</small>
+    </div>
+  </div>
+
+  <div class="messages" id="messages"></div>
+
+  <div class="quick-replies" id="quickReplies"></div>
+
+  <div class="input-area">
+    <textarea id="userInput" placeholder="Ketik pertanyaan Anda…" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+    <button class="send-btn" onclick="sendMessage()" aria-label="Kirim">
+      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<div class="disclaimer">
+  SIPA adalah asisten virtual berbasis AI. Untuk urusan resmi, hubungi kantor Satpol PP di (0552) 2036660.
+</div>
+
+<script>
+const BOT = {
+  name: 'SIPA',
+  greet: `Halo! Saya **SIPA**, asisten virtual Satpol PP Kalimantan Utara. 👋\n\nSaya siap membantu Anda dengan informasi seputar:\n- 📋 Cara membuat pengaduan\n- 📅 Jadwal operasi penertiban\n- ⚖️ Dasar hukum & regulasi\n- 📍 Lokasi & kontak kantor\n- 🔍 Lacak status pengaduan\n\nAda yang bisa saya bantu?`
+};
+
+const KB = [
+  {
+    patterns: ['pengaduan','lapor','aduan','complaint','laporkan'],
+    answer: `Untuk menyampaikan **pengaduan**, Anda bisa:\n\n1. 🖥️ **Online** — isi form di halaman Layanan website kami\n2. 📱 **WhatsApp** — +62 800-0000-0000\n3. 📞 **Telepon** — (0552) 2036660\n4. 🏢 **Langsung** — datang ke kantor Jl. H. Masykur No. 019, Tanjung Selor\n\nSiapkan: nama, lokasi kejadian, kategori pelanggaran, dan bukti foto/video jika ada.`,
+    chips: ['Lacak pengaduan','Kategori pelanggaran','Jam buka kantor']
+  },
+  {
+    patterns: ['lacak','status','tiket','nomor tiket','cek pengaduan'],
+    answer: `Untuk **melacak status pengaduan**, Anda memerlukan nomor tiket yang diberikan saat pengaduan dikirim.\n\n🔍 Caranya:\n1. Buka halaman **Lacak Pengaduan** di website\n2. Masukkan nomor tiket (contoh: SP-ABC12)\n3. Status akan tampil beserta riwayat tindak lanjut\n\nNomor tiket dikirim ke email/WhatsApp Anda setelah pengaduan diterima.`,
+    chips: ['Cara pengaduan','Berapa lama proses?','Kontak kantor']
+  },
+  {
+    patterns: ['jadwal','operasi','penertiban','patroli','agenda'],
+    answer: `📅 **Jadwal Operasi Terkini:**\n\n• **10 Sep 2025** — Operasi penertiban reklame, Koridor Utama\n• **14 Sep 2025** — Patroli gabungan kawasan pasar\n• **18 Sep 2025** — Simulasi linmas & mitigasi bencana, Alun-alun\n\nAgenda lengkap tersedia di halaman **Agenda** website kami. Jadwal dapat berubah sesuai situasi lapangan.`,
+    chips: ['Lokasi operasi','Cara pengaduan','Regulasi Perda']
+  },
+  {
+    patterns: ['regulasi','perda','peraturan','hukum','pergub','dasar hukum'],
+    answer: `⚖️ **Dasar Hukum Satpol PP Kaltara:**\n\n• Perda No. x Tahun xxxx tentang Ketertiban Umum\n• Perda No. y Tahun yyyy tentang Retribusi Pemakaian Kekayaan Daerah\n• Peraturan Gubernur tentang Penjabaran Tugas Satpol PP\n• UU No. 23 Tahun 2014 tentang Pemerintahan Daerah\n• PP No. 16 Tahun 2018 tentang Satpol PP\n\nDokumen PDF tersedia di halaman **Regulasi** website.`,
+    chips: ['Sanksi pelanggaran','Cara pengaduan','PPID']
+  },
+  {
+    patterns: ['kontak','alamat','telepon','email','lokasi','kantor','dimana'],
+    answer: `📍 **Kantor Satpol PP Kaltara:**\n\nJl. H. Masykur No. 019, Tanjung Selor\nKode Pos 77212, Kalimantan Utara\n\n📞 Telepon: (0552) 2036660\n✉️ Email: satuanppprovkaltara@gmail.com\n💬 WhatsApp: +62 800-0000-0000\n\n🕐 **Jam Layanan:**\nSenin–Jumat: 08.00–16.00 WITA\nSabtu–Minggu & Libur: Tutup`,
+    chips: ['Cara ke sana?','Jam buka kantor','Cara pengaduan']
+  },
+  {
+    patterns: ['jam','buka','tutup','waktu','operasional','hari'],
+    answer: `🕐 **Jam Layanan Kantor:**\n\n• **Senin – Jumat:** 08.00 – 16.00 WITA\n• **Sabtu, Minggu & Hari Libur:** Tutup\n\nUntuk pengaduan darurat di luar jam kantor, hubungi:\n📱 WhatsApp: +62 800-0000-0000\n\nPengaduan online melalui website tersedia **24 jam**.`,
+    chips: ['Alamat kantor','Cara pengaduan','Jadwal operasi']
+  },
+  {
+    patterns: ['ppid','informasi publik','keterbukaan','permohonan informasi'],
+    answer: `ℹ️ **PPID Satpol PP Kaltara** menyediakan:\n\n📂 **Informasi Berkala:**\n- Profil & struktur organisasi\n- Program dan kegiatan tahunan\n- Daftar regulasi dan SOP\n\n📝 **Permohonan Informasi:**\nAjukan melalui form di halaman PPID website kami. Respons diberikan dalam **10 hari kerja** sesuai UU KIP.\n\n⚖️ Hak keberatan tersedia jika informasi ditolak.`,
+    chips: ['Cara pengaduan','Regulasi','Kontak kantor']
+  },
+  {
+    patterns: ['kategori','jenis pelanggaran','apa saja','macam'],
+    answer: `📋 **Kategori Pengaduan yang Ditangani:**\n\n1. 🚫 **Pelanggaran Perda** — bangunan liar, PKL ilegal, reklame tanpa izin\n2. 🔊 **Gangguan Ketertiban** — keributan, demo tanpa izin, kemacetan\n3. 😰 **Ketentraman Masyarakat** — konflik warga, perjudian, PEKAT\n4. 🛡️ **Perlindungan Masyarakat** — bencana, evakuasi, keamanan lingkungan`,
+    chips: ['Cara pengaduan','Sanksi pelanggaran','Jadwal operasi']
+  },
+  {
+    patterns: ['sanksi','denda','hukuman','akibat','konsekuensi'],
+    answer: `⚖️ **Sanksi Pelanggaran Perda** bervariasi tergantung jenis pelanggaran:\n\n• **Teguran lisan/tertulis** — pelanggaran ringan pertama kali\n• **Pembongkaran/penyitaan** — bangunan/barang yang melanggar\n• **Denda administratif** — sesuai ketentuan Perda yang berlaku\n• **Sanksi pidana** — pelanggaran berat, diserahkan ke penegak hukum\n\nDetail sanksi tercantum dalam Perda masing-masing.`,
+    chips: ['Lihat regulasi','Cara pengaduan','Kontak kantor']
+  },
+  {
+    patterns: ['berapa lama','proses','tindak lanjut','waktu respon','kapan'],
+    answer: `⏱️ **Estimasi Waktu Penanganan:**\n\n• **Verifikasi pengaduan:** 1–3 jam (hari kerja)\n• **Tindak lanjut lapangan:** 1–3 hari kerja\n• **Penyelesaian:** 7–14 hari kerja (tergantung kompleksitas)\n\n📱 Update status akan dikirim ke kontak yang Anda daftarkan.\n\nKasus darurat (ancaman keselamatan) ditangani dalam **<2 jam**.`,
+    chips: ['Lacak pengaduan','Cara pengaduan','Kontak kantor']
+  }
+];
+
+const quickStarters = [
+  '📋 Cara mengadu','📅 Jadwal operasi','📍 Lokasi kantor','🔍 Lacak pengaduan','⚖️ Regulasi Perda'
+];
+
+let messages = [];
+
+function getTime(){
+  return new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+}
+
+function renderMessages(){
+  const container = document.getElementById('messages');
+  container.innerHTML = messages.map(m => `
+    <div class="msg ${m.role}">
+      <div class="msg-avatar">${m.role==='bot'?'🤖':'👤'}</div>
+      <div>
+        <div class="bubble">${formatBubble(m.text)}</div>
+        <div class="msg-time">${m.time}</div>
+      </div>
+    </div>
+  `).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
+function formatBubble(text){
+  return text
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\n\n/g,'</p><p>')
+    .replace(/\n/g,'<br>')
+    .replace(/^/,'<p>').replace(/$/,'</p>')
+    .replace(/• (.*?)(<br>|<\/p>)/g,'<li>$1</li>$2')
+    .replace(/(\d+)\. (.*?)(<br>|<\/p>)/g,'<li>$2</li>$3');
+}
+
+function showTyping(){
+  const container = document.getElementById('messages');
+  const el = document.createElement('div');
+  el.className = 'msg bot'; el.id = 'typing';
+  el.innerHTML = `<div class="msg-avatar">🤖</div><div class="bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
+  container.appendChild(el);
+  container.scrollTop = container.scrollHeight;
+}
+function hideTyping(){ document.getElementById('typing')?.remove(); }
+
+function setQuickReplies(chips=[]){
+  const el = document.getElementById('quickReplies');
+  if(!chips.length){ el.innerHTML=''; return; }
+  el.innerHTML = chips.map(c=>`<button class="qr-btn" onclick="sendMessage('${c}')">${c}</button>`).join('');
+}
+
+function findAnswer(input){
+  const q = input.toLowerCase();
+  for(const entry of KB){
+    if(entry.patterns.some(p => q.includes(p))) return entry;
+  }
+  return null;
+}
+
+function botReply(userText){
+  showTyping();
+  setTimeout(()=>{
+    hideTyping();
+    const found = findAnswer(userText);
+    let answer, chips=[];
+    if(found){
+      answer = found.answer;
+      chips = found.chips || [];
+    } else {
+      answer = `Maaf, saya belum memiliki informasi spesifik tentang hal tersebut. 😕\n\nAnda bisa:\n• 📞 Hubungi langsung: **(0552) 2036660**\n• ✉️ Email: **satuanppprovkaltara@gmail.com**\n• 💬 WhatsApp: **+62 800-0000-0000**\n\nApakah ada pertanyaan lain yang bisa saya bantu?`;
+      chips = ['Cara pengaduan','Lokasi kantor','Jadwal operasi'];
+    }
+    messages.push({role:'bot', text:answer, time:getTime()});
+    renderMessages();
+    setQuickReplies(chips);
+  }, 800 + Math.random()*400);
+}
+
+function sendMessage(preset){
+  const input = document.getElementById('userInput');
+  const text = (preset || input.value || '').trim();
+  if(!text) return;
+  input.value = '';
+  input.style.height = '';
+  messages.push({role:'user', text, time:getTime()});
+  renderMessages();
+  setQuickReplies([]);
+  botReply(text);
+}
+
+function handleKey(e){
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }
+}
+
+function autoResize(el){
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// Init
+window.addEventListener('DOMContentLoaded', ()=>{
+  messages.push({role:'bot', text:BOT.greet, time:getTime()});
+  renderMessages();
+  setQuickReplies(quickStarters);
+});
+</script>
+</body>
+</html>

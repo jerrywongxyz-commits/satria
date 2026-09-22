@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Monitoring Layanan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        /* BASE & LAYOUT ADMINLTE STYLE */
+        body {
+            background-color: #f4f6f9; /* Latar belakang body terang */
+        }
+        #sidebar {
+            min-width: 250px; /* Sedikit dikecilkan */
+            max-width: 250px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1030; /* Di atas konten */
+            background-color: #343a40; /* Warna Sidebar Gelap */
+            color: #c2c7d0; /* Warna teks sidebar */
+            padding-top: 0;
+            border-right: none;
+        }
+        #sidebar h5 {
+            color: #ffffff !important; /* Judul filter putih */
+            padding-top: 20px;
+            padding-left: 1rem;
+        }
+        #sidebar .form-label, #sidebar p {
+             color: #c2c7d0; /* Label filter terang */
+        }
+        #sidebar .p-3 {
+            padding-top: 0 !important;
+        }
+        #content, #top-kpi-bar {
+            margin-left: 250px; /* Menyesuaikan dengan lebar sidebar baru */
+            padding: 20px;
+        }
+        
+        /* CARD & KPI STYLE (Gaya Info Box AdminLTE) */
+        .card {
+            border-radius: 4px;
+            box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+            margin-bottom: 20px;
+            background-color: #fff;
+        }
+        .kpi-card .card-body {
+            color: white;
+            padding: 1.25rem;
+        }
+        
+        /* Warna KPI AdminLTE (Menggantikan .kpi-card sebelumnya) */
+        .kpi-box-blue { background-color: #007bff; } /* Total Aduan */
+        .kpi-box-green { background-color: #28a645; } /* Respons Time */
+        .kpi-box-yellow { background-color: #ffc107; } /* Persentase Selesai */
+        .kpi-box-red { background-color: #dc3545; } /* Aduan per Urusan */
+        
+        .kpi-card h2, .kpi-card h5 {
+            color: white !important;
+        }
+        .kpi-card h6, .kpi-card p {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+        
+        /* Fix Chart Height Issues */
+        #chart-tren { max-height: 280px; height: 100%; width: 100%; }
+        #chart-pelanggaran, #chart-perda { max-height: 250px; height: 100%; width: 100%; }
+        #chart-kinerja-trc { max-height: 350px; height: 100%; width: 100%; }
+        #map-rawan { height: 400px; width: 100%; }
+        
+        /* Fix Tampilan Tabel */
+        .table-responsive { overflow-x: auto; }
+
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <div class="user-panel pb-3 mb-3 d-flex border-bottom border-secondary mx-3">
+             <a href="#" class="d-block text-white text-decoration-none fw-bold pt-2">⚙️ MONITORING ADMIN</a>
+        </div>
+        <h5 class="mb-3 text-primary">Filter Data</h5>
+        <div class="p-3">
+            
+            <label for="filter-periode" class="form-label fw-bold">Periode Waktu</label>
+            <select id="filter-periode" class="form-select mb-3 form-select-sm">
+                <option value="today">Hari Ini</option>
+                <option value="month" selected>Bulan Ini</option>
+                </select>
+
+            <label for="filter-layanan" class="form-label fw-bold">Urusan Layanan</label>
+            <select id="filter-layanan" class="form-select mb-3 form-select-sm">
+                <option value="all" selected>Semua Urusan</option>
+                <option value="satpolpp">Satpol PP</option>
+                <option value="damkar">Damkar</option>
+            </select>
+
+            <label for="filter-lokasi" class="form-label fw-bold">Lokasi / Kecamatan</label>
+            <input type="text" id="filter-lokasi" class="form-control mb-4 form-control-sm" placeholder="Cari Lokasi...">
+            
+            <button class="btn btn-warning w-100">Terapkan Filter</button>
+        </div>
+    </div>
+
+    <div id="top-kpi-bar">
+        <div class="row">
+            
+            <div class="col-md-3">
+                <div class="card kpi-card kpi-box-blue">
+                    <div class="card-body py-2">
+                        <h6 class="small">Total Aduan Masuk</h6>
+                        <h2 class="fw-bold">453</h2>
+                        <p class="mb-0 small">Aduan Masuk (Periode Terpilih)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card kpi-card kpi-box-green">
+                    <div class="card-body py-2">
+                        <h6 class="small">Rata-rata Waktu Respons</h6>
+                        <h2 class="fw-bold">15 Menit</h2>
+                        <p class="mb-0 small">Target: 20 Menit</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card kpi-card kpi-box-yellow">
+                    <div class="card-body py-2">
+                        <h6 class="small">Persentase Aduan Selesai</h6>
+                        <h2 class="fw-bold">92%</h2>
+                        <p class="mb-0 small">8% Masih Proses</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card kpi-card kpi-box-red">
+                    <div class="card-body py-2">
+                        <h6 class="small">Aduan per Urusan</h6>
+                        <div class="d-flex justify-content-between">
+                            <h5 class="fw-bold">Satpol PP: 280</h5>
+                            <h5 class="fw-bold">Damkar: 173</h5>
+                        </div>
+                        <p class="mb-0 small">Total: 453 Aduan</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="content">
+        <div class="row">
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">2. Tren Waktu Laporan</h5>
+                        <canvas id="chart-tren"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">3. Breakdown Kategori</h5>
+                        
+                        <ul class="nav nav-tabs" id="breakdownTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="pelanggaran-tab" data-bs-toggle="tab" data-bs-target="#pelanggaran-pane" type="button" role="tab">Jenis Pelanggaran</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="perda-tab" data-bs-toggle="tab" data-bs-target="#perda-pane" type="button" role="tab">Perda Teratas</button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content pt-3" id="breakdownTabsContent">
+                            <div class="tab-pane fade show active" id="pelanggaran-pane" role="tabpanel" tabindex="0">
+                                <canvas id="chart-pelanggaran"></canvas>
+                            </div>
+                            <div class="tab-pane fade" id="perda-pane" role="tabpanel" tabindex="0">
+                                <canvas id="chart-perda"></canvas>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">4. Peta Rawan Gangguan</h5>
+                        <div id="map-rawan">
+                            </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">5. Kinerja TRC</h5>
+                        <select id="filter-kinerja-urusan" class="form-select form-select-sm mb-3">
+                            <option value="all" selected>Semua Urusan</option>
+                            <option value="satpolpp">Satpol PP</option>
+                            <option value="damkar">Damkar</option>
+                        </select>
+                        <p class="small text-muted mb-1">Filter Wilayah: (Dari Sidebar)</p>
+                        <canvas id="chart-kinerja-trc"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">6. Tabel Detail Aduan</h5>
+                        <div class="table-responsive" style="max-height: 400px;">
+                            <table class="table table-striped table-hover table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>ID Aduan</th>
+                                        <th>Tanggal</th>
+                                        <th>Urusan</th>
+                                        <th>Jenis Pelanggaran</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>TKT-101</td><td>2025-11-20</td><td>Satpol PP</td><td>Judi Sabung Ayam</td><td><span class="badge text-bg-success">Selesai</span></td><td><button class="btn btn-xs btn-info">Detail</button></td></tr>
+                                    <tr><td>TKT-102</td><td>2025-11-20</td><td>Damkar</td><td>Kebakaran Lahan</td><td><span class="badge text-bg-warning">Proses</span></td><td><button class="btn btn-xs btn-info">Detail</button></td></tr>
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div> 
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    
+    <script>
+        // Data Placeholder (Integrasi Map)
+        const dataSatpolPP = [[-6.195, 106.82, 0.5], [-6.196, 106.83, 0.7], [-6.20, 106.825, 1.0], [-6.18, 106.81, 0.6], [-6.21, 106.83, 0.9], [-6.205, 106.815, 0.4]];
+        const dataDamkar = [[-6.23, 106.85, 0.8], [-6.22, 106.86, 0.9], [-6.24, 106.84, 0.5], [-6.25, 106.87, 1.0], [-6.21, 106.855, 0.3], [-6.26, 106.845, 0.7]];
+        
+        // Data Kinerja Response Time
+        const dataResponseTime = {
+            all: [15, 12, 18, 10, 14], 
+            satpolpp: [14, 11, 17, 12, 13],
+            damkar: [16, 13, 19, 8, 15] 
+        };
+        const labelsTRC = ['TRC.1', 'TRC.2', 'TRC.3', 'TRC.4', 'TRC.5'];
+        
+        let currentHeatLayer = null; 
+        
+        function updateHeatmapLayer(layerName) {
+            if (currentHeatLayer) {
+                map.removeLayer(currentHeatLayer);
+            }
+            let data = (layerName === 'satpolpp') ? dataSatpolPP : (layerName === 'damkar' ? dataDamkar : dataSatpolPP.concat(dataDamkar));
+            let radius = (layerName === 'damkar') ? 35 : 25;
+            
+            currentHeatLayer = L.heatLayer(data, {
+                radius: radius, blur: 15, maxZoom: 17,
+                gradient: {0.4: 'blue', 0.6: 'lime', 0.8: 'yellow', 1.0: 'red'}
+            }).addTo(map);
+        }
+
+        function updateKinerjaTRC(urusan) {
+            chartKinerjaTRC.data.datasets[0].data = dataResponseTime[urusan];
+            const colorMap = {'all': '#007bff', 'satpolpp': '#28a745', 'damkar': '#dc3545'};
+            chartKinerjaTRC.data.datasets[0].backgroundColor = colorMap[urusan]; 
+            chartKinerjaTRC.update();
+        }
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- 4. MAP Initialization ---
+            const map = L.map('map-rawan').setView([-6.1944, 106.8229], 12); 
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+            updateHeatmapLayer('all'); 
+            
+            // --- Event Listener Map Filter ---
+            const filterLayanan = document.getElementById('filter-layanan');
+            filterLayanan.addEventListener('change', function() {
+                updateHeatmapLayer(this.value); 
+                updateKinerjaTRC(this.value); // Sinkronkan filter layanan ke Kinerja TRC
+            });
+
+
+            // --- 2. Chart Tren Waktu (Line Chart) ---
+            const ctxTren = document.getElementById('chart-tren').getContext('2d');
+            new Chart(ctxTren, {
+                type: 'line',
+                data: { /* ... Data dan Options Tren ... */ },
+                options: { /* ... Opsi Tren ... */ }
+            });
+
+            // --- 3a. Chart Pelanggaran (Bar Chart) ---
+            const ctxPelanggaran = document.getElementById('chart-pelanggaran').getContext('2d');
+            const chartPelanggaran = new Chart(ctxPelanggaran, {
+                type: 'bar',
+                data: { /* ... Data dan Options Pelanggaran ... */ },
+                options: { /* ... Opsi Pelanggaran ... */ }
+            });
+
+            // --- 3b. Chart Perda (Bar Chart) ---
+            const ctxPerda = document.getElementById('chart-perda').getContext('2d');
+            const chartPerda = new Chart(ctxPerda, {
+                type: 'bar',
+                data: { /* ... Data dan Options Perda ... */ },
+                options: { /* ... Opsi Perda ... */ }
+            });
+
+            // --- 5. Chart Kinerja TRC (Bar Chart) ---
+            const ctxKinerjaTRC = document.getElementById('chart-kinerja-trc').getContext('2d');
+            const chartKinerjaTRC = new Chart(ctxKinerjaTRC, {
+                type: 'bar',
+                data: { labels: labelsTRC, datasets: [{ label: 'Rata-rata Waktu Respons (Menit)', data: dataResponseTime.all, backgroundColor: ['#28a745', '#17a2b8', '#ffc107', '#dc3545', '#007bff'] }] },
+                options: { /* ... Opsi Kinerja TRC ... */ }
+            });
+
+            // --- Event Listener Kinerja TRC ---
+            const filterKinerjaUrusan = document.getElementById('filter-kinerja-urusan');
+            filterKinerjaUrusan.addEventListener('change', function() {
+                updateKinerjaTRC(this.value);
+            });
+            
+            // Menggabungkan definisi data dan options chart ke dalam script akhir
+            // (Untuk menjaga kode tetap ringkas dan terstruktur, saya berasumsi Anda akan menyalin ulang
+            // data dan options dari jawaban sebelumnya ke sini, menggantikan komentar /* ... */)
+        });
+    </script>
+</body>
+</html>

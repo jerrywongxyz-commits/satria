@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Laporan & Survei Kepuasan — Satpol PP Kaltara</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --brand:#0a5c8a;--brand-mid:#0e7bb5;--brand-light:#d6edf7;--brand-xlight:#edf6fb;
+      --gold:#c9922a;--gold-light:#fdf3e3;--text:#12213a;--text-soft:#4a5f78;
+      --border:#dce8f0;--bg:#f0f6fb;--card:#fff;--radius:16px;
+      --green:#1a7a3e;--green-light:#e8f7ee;
+    }
+    [data-theme="dark"]{
+      --text:#e4eff8;--text-soft:#7fa5be;--border:#1e3a52;--bg:#0c1f2e;--card:#122436;
+      --brand-xlight:#0a2030;--brand-light:#0d3050;
+    }
+    [data-theme="contrast"]{
+      --text:#000;--text-soft:#333;--border:#000;--bg:#fff;--card:#fff;
+      --brand:#000;--brand-mid:#000;--brand-light:#ccc;--brand-xlight:#eee;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s}
+    a{color:var(--brand);text-decoration:none}
+
+    .topbar{background:linear-gradient(135deg,#08456d,#0a5c8a,#0d76b0);color:#fff;border-bottom:3px solid var(--gold)}
+    .top-inner{max-width:1200px;margin:auto;padding:10px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+    .top-inner img{width:48px;height:48px;object-fit:contain}
+    .site-title b{font-size:15px;font-family:'Lora',serif}
+    .site-title small{font-size:11px;opacity:.8}
+    .back-btn{margin-left:auto;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:6px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:background .2s}
+    .back-btn:hover{background:rgba(255,255,255,.25);color:#fff}
+
+    /* accessibility toolbar */
+    .a11y-bar{background:var(--card);border-bottom:1px solid var(--border);padding:8px 20px}
+    .a11y-inner{max-width:1200px;margin:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .a11y-label{font-size:12px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:.5px}
+    .a11y-btn{padding:5px 12px;border-radius:999px;font-size:12px;font-weight:700;border:1.5px solid var(--border);background:var(--bg);color:var(--text-soft);cursor:pointer;font-family:inherit;transition:all .18s}
+    .a11y-btn:hover{border-color:var(--brand);color:var(--brand)}
+    .a11y-btn.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+    .a11y-sep{width:1px;height:20px;background:var(--border);margin:0 4px}
+
+    /* hero */
+    .hero-strip{background:linear-gradient(90deg,#08375a,#0a5c8a);color:#fff;padding:32px 0}
+    .hero-strip .inner{max-width:1200px;margin:auto;padding:0 20px;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    .hero-strip h1{font-family:'Lora',serif;font-size:26px;margin-bottom:6px}
+    .hero-strip p{color:rgba(255,255,255,.75);font-size:14px}
+    .dl-btn{background:var(--gold);color:#fff;border:none;padding:10px 20px;border-radius:999px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;transition:background .2s;text-decoration:none;flex-shrink:0}
+    .dl-btn:hover{background:#b8821f;color:#fff}
+
+    .main{max-width:1200px;margin:0 auto;padding:28px 20px}
+
+    /* tabs */
+    .tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:6px;margin-bottom:24px;box-shadow:0 2px 10px rgba(10,92,138,.06)}
+    .tab{flex:1;padding:10px;border-radius:12px;border:none;background:transparent;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;color:var(--text-soft);transition:all .2s;text-align:center}
+    .tab:hover{background:var(--brand-xlight);color:var(--brand)}
+    .tab.active{background:var(--brand);color:#fff;box-shadow:0 2px 10px rgba(10,92,138,.25)}
+    .tab-panel{display:none}
+    .tab-panel.active{display:block}
+
+    /* cards */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:0 2px 12px rgba(10,92,138,.07)}
+    .card-head{padding:16px 20px;border-bottom:1px solid var(--border)}
+    .card-head h3{font-size:16px;font-weight:700;font-family:'Lora',serif}
+    .card-body{padding:20px}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+
+    /* report download list */
+    .report-list{display:grid;gap:12px}
+    .report-item{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--bg);border:1px solid var(--border);border-radius:12px;transition:border-color .2s,background .2s}
+    .report-item:hover{border-color:var(--brand);background:var(--brand-xlight)}
+    .report-icon{width:44px;height:44px;border-radius:10px;background:var(--brand-xlight);border:1px solid var(--brand-light);display:grid;place-items:center;font-size:22px;flex-shrink:0}
+    .report-info b{font-size:14px;font-weight:700;display:block;margin-bottom:2px}
+    .report-info span{font-size:12px;color:var(--text-soft)}
+    .report-dl{margin-left:auto;background:var(--brand);color:#fff;border:none;padding:7px 14px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s;white-space:nowrap}
+    .report-dl:hover{background:var(--brand-mid)}
+
+    /* kpi */
+    .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+    .kpi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 8px rgba(10,92,138,.06);position:relative;overflow:hidden}
+    .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--brand),var(--brand-mid))}
+    .kpi.g::before{background:linear-gradient(90deg,var(--green),#27ae60)}
+    .kpi.gold::before{background:linear-gradient(90deg,var(--gold),#f0b429)}
+    .kpi-num{font-size:30px;font-weight:800;color:var(--brand);margin-bottom:3px}
+    .kpi.g .kpi-num{color:var(--green)}
+    .kpi.gold .kpi-num{color:var(--gold)}
+    .kpi-lbl{font-size:12px;color:var(--text-soft);font-weight:600}
+
+    /* survei */
+    .survey-wrap{max-width:640px;margin:0 auto}
+    .survey-step{display:none}
+    .survey-step.active{display:block;animation:fadeIn .3s}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .survey-progress{height:6px;background:var(--border);border-radius:999px;margin-bottom:20px;overflow:hidden}
+    .survey-progress-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--brand),var(--brand-mid));transition:width .4s}
+    .q-label{font-size:13px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+    .q-text{font-size:18px;font-weight:700;font-family:'Lora',serif;margin-bottom:18px;line-height:1.4}
+    .rating-stars{display:flex;gap:10px;margin-bottom:20px;justify-content:center}
+    .star{font-size:38px;cursor:pointer;opacity:.3;transition:opacity .15s,transform .15s}
+    .star:hover,.star.sel{opacity:1}
+    .star:hover{transform:scale(1.15)}
+    .options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+    .opt-btn{padding:12px 14px;border:2px solid var(--border);border-radius:12px;background:var(--card);color:var(--text);cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;text-align:left;transition:all .2s;display:flex;align-items:center;gap:10px}
+    .opt-btn:hover,.opt-btn.sel{border-color:var(--brand);background:var(--brand-xlight);color:var(--brand)}
+    .survey-nav{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+    .btn{display:inline-flex;align-items:center;gap:6px;background:var(--brand);color:#fff;border:none;padding:10px 20px;border-radius:999px;cursor:pointer;font-weight:700;font-size:14px;font-family:inherit;transition:background .2s}
+    .btn:hover{background:var(--brand-mid)}
+    .btn.secondary{background:var(--bg);color:var(--text);border:1px solid var(--border)}
+    .btn.secondary:hover{border-color:var(--brand);color:var(--brand)}
+    textarea.survey-text{width:100%;padding:12px;border:1.5px solid var(--border);border-radius:12px;font-family:inherit;font-size:14px;resize:vertical;min-height:100px;color:var(--text);background:var(--card);transition:border-color .2s}
+    textarea.survey-text:focus{outline:none;border-color:var(--brand)}
+    .success-card{text-align:center;padding:40px 20px}
+    .success-icon{font-size:60px;margin-bottom:16px}
+    .success-card h2{font-family:'Lora',serif;font-size:24px;margin-bottom:8px}
+    .success-card p{color:var(--text-soft)}
+
+    /* dark mode toggle */
+    .theme-toggle{display:flex;align-items:center;gap:10px;margin-left:auto}
+
+    @media(max-width:900px){.kpi-row,.grid-2,.grid-3{grid-template-columns:1fr 1fr}}
+    @media(max-width:500px){.kpi-row,.grid-2,.grid-3,.options-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="top-inner">
+    <img src="https://simpeg.kaltaraprov.go.id/logo/ori_prov_kaltara.png" alt="Logo Kaltara"/>
+    <div class="site-title">
+      <b>Satpol PP Kalimantan Utara</b>
+      <small>Laporan Kinerja &amp; Survei Kepuasan</small>
+    </div>
+    <a class="back-btn" href="satpolpp-kaltara.html">← Kembali</a>
+  </div>
+</div>
+
+<!-- Accessibility Bar -->
+<div class="a11y-bar" role="toolbar" aria-label="Pengaturan aksesibilitas">
+  <div class="a11y-inner">
+    <span class="a11y-label">Aksesibilitas:</span>
+    <button class="a11y-btn" onclick="changeFontSize(1)" aria-label="Perbesar teks">A+</button>
+    <button class="a11y-btn" onclick="changeFontSize(-1)" aria-label="Perkecil teks">A−</button>
+    <div class="a11y-sep"></div>
+    <button class="a11y-btn" id="darkBtn" onclick="setTheme('dark')" aria-label="Mode gelap">🌙 Gelap</button>
+    <button class="a11y-btn" id="lightBtn" onclick="setTheme('light')" aria-label="Mode terang">☀️ Terang</button>
+    <div class="a11y-sep"></div>
+    <button class="a11y-btn" id="contrastBtn" onclick="setTheme('contrast')" aria-label="Kontras tinggi">◑ Kontras Tinggi</button>
+    <div class="a11y-sep"></div>
+    <button class="a11y-btn" onclick="readPage()" aria-label="Baca halaman">🔊 Baca Halaman</button>
+  </div>
+</div>
+
+<div class="hero-strip">
+  <div class="inner">
+    <div>
+      <h1>📄 Laporan Kinerja &amp; Survei</h1>
+      <p>Unduh laporan kinerja resmi Satpol PP Kaltara dan sampaikan penilaian layanan Anda</p>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Tabs -->
+  <div class="tabs" role="tablist">
+    <button class="tab active" role="tab" onclick="switchTab('laporan',this)">📋 Laporan Kinerja</button>
+    <button class="tab" role="tab" onclick="switchTab('survei',this)">⭐ Survei Kepuasan</button>
+    <button class="tab" role="tab" onclick="switchTab('bahasa',this)">🗣️ Bahasa Daerah</button>
+  </div>
+
+  <!-- TAB: LAPORAN -->
+  <div class="tab-panel active" id="tab-laporan">
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-num">120</div><div class="kpi-lbl">Total Pengaduan</div></div>
+      <div class="kpi g"><div class="kpi-num">91%</div><div class="kpi-lbl">Tingkat Penyelesaian</div></div>
+      <div class="kpi gold"><div class="kpi-num">86</div><div class="kpi-lbl">Operasi Ketertiban</div></div>
+      <div class="kpi"><div class="kpi-num">4.6</div><div class="kpi-lbl">Indeks Kepuasan</div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-head"><h3>📥 Unduh Laporan Resmi</h3></div>
+      <div class="card-body">
+        <div class="report-list">
+          <div class="report-item">
+            <div class="report-icon">📊</div>
+            <div class="report-info">
+              <b>Laporan Kinerja Triwulan I (Jan–Mar 2025)</b>
+              <span>PDF • 2.4 MB • Diterbitkan 05 Apr 2025</span>
+            </div>
+            <button class="report-dl" onclick="mockDownload(this,'Lap-TW1-2025.pdf')">⬇ Unduh PDF</button>
+          </div>
+          <div class="report-item">
+            <div class="report-icon">📊</div>
+            <div class="report-info">
+              <b>Laporan Kinerja Triwulan II (Apr–Jun 2025)</b>
+              <span>PDF • 2.7 MB • Diterbitkan 07 Jul 2025</span>
+            </div>
+            <button class="report-dl" onclick="mockDownload(this,'Lap-TW2-2025.pdf')">⬇ Unduh PDF</button>
+          </div>
+          <div class="report-item">
+            <div class="report-icon">📋</div>
+            <div class="report-info">
+              <b>Laporan Kinerja Triwulan III (Jul–Sep 2025)</b>
+              <span>PDF • — • Segera terbit</span>
+            </div>
+            <button class="report-dl" style="opacity:.5;cursor:not-allowed" disabled>⏳ Belum tersedia</button>
+          </div>
+          <div class="report-item">
+            <div class="report-icon">📈</div>
+            <div class="report-info">
+              <b>Laporan Tahunan 2024</b>
+              <span>PDF • 5.1 MB • Diterbitkan 15 Jan 2025</span>
+            </div>
+            <button class="report-dl" onclick="mockDownload(this,'Lap-Tahunan-2024.pdf')">⬇ Unduh PDF</button>
+          </div>
+          <div class="report-item">
+            <div class="report-icon">⚖️</div>
+            <div class="report-info">
+              <b>SOP Penertiban &amp; Pengaduan</b>
+              <span>PDF • 1.2 MB • Versi 2025</span>
+            </div>
+            <button class="report-dl" onclick="mockDownload(this,'SOP-Satpolpp-2025.pdf')">⬇ Unduh PDF</button>
+          </div>
+          <div class="report-item">
+            <div class="report-icon">📝</div>
+            <div class="report-info">
+              <b>Maklumat Pelayanan Publik</b>
+              <span>PDF • 0.8 MB • Versi 2025</span>
+            </div>
+            <button class="report-dl" onclick="mockDownload(this,'Maklumat-2025.pdf')">⬇ Unduh PDF</button>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--text-soft);margin-top:14px">* Dokumen di atas adalah simulasi. Hubungkan ke server untuk file nyata.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: SURVEI -->
+  <div class="tab-panel" id="tab-survei">
+    <div class="survey-wrap">
+      <div class="card">
+        <div class="card-head"><h3>⭐ Survei Kepuasan Layanan</h3></div>
+        <div class="card-body">
+          <div class="survey-progress"><div class="survey-progress-fill" id="surveyProgress" style="width:0%"></div></div>
+
+          <!-- Step 1: Rating -->
+          <div class="survey-step active" id="step1">
+            <div class="q-label">Pertanyaan 1 dari 4</div>
+            <div class="q-text">Seberapa puas Anda dengan layanan Satpol PP Kaltara secara keseluruhan?</div>
+            <div class="rating-stars" id="stars">
+              <span class="star" data-v="1">⭐</span>
+              <span class="star" data-v="2">⭐</span>
+              <span class="star" data-v="3">⭐</span>
+              <span class="star" data-v="4">⭐</span>
+              <span class="star" data-v="5">⭐</span>
+            </div>
+            <div style="text-align:center;font-size:13px;color:var(--text-soft);margin-bottom:16px" id="starLabel">Pilih bintang untuk menilai</div>
+            <div class="survey-nav"><button class="btn" onclick="nextStep()">Lanjut →</button></div>
+          </div>
+
+          <!-- Step 2: Layanan yang digunakan -->
+          <div class="survey-step" id="step2">
+            <div class="q-label">Pertanyaan 2 dari 4</div>
+            <div class="q-text">Layanan apa yang Anda gunakan?</div>
+            <div class="options-grid">
+              <button class="opt-btn" onclick="selectOpt(this)">🚨 Pengaduan pelanggaran</button>
+              <button class="opt-btn" onclick="selectOpt(this)">🔍 Lacak status aduan</button>
+              <button class="opt-btn" onclick="selectOpt(this)">ℹ️ Informasi publik (PPID)</button>
+              <button class="opt-btn" onclick="selectOpt(this)">📋 Unduh regulasi/SOP</button>
+              <button class="opt-btn" onclick="selectOpt(this)">📅 Informasi agenda</button>
+              <button class="opt-btn" onclick="selectOpt(this)">🤖 Asisten AI (SIPA)</button>
+            </div>
+            <div class="survey-nav">
+              <button class="btn secondary" onclick="prevStep()">← Kembali</button>
+              <button class="btn" onclick="nextStep()">Lanjut →</button>
+            </div>
+          </div>
+
+          <!-- Step 3: Aspek terbaik -->
+          <div class="survey-step" id="step3">
+            <div class="q-label">Pertanyaan 3 dari 4</div>
+            <div class="q-text">Aspek apa yang perlu kami tingkatkan?</div>
+            <div class="options-grid">
+              <button class="opt-btn" onclick="selectOpt(this)">⚡ Kecepatan respons</button>
+              <button class="opt-btn" onclick="selectOpt(this)">😊 Keramahan petugas</button>
+              <button class="opt-btn" onclick="selectOpt(this)">💻 Kemudahan website</button>
+              <button class="opt-btn" onclick="selectOpt(this)">📢 Informasi yang jelas</button>
+              <button class="opt-btn" onclick="selectOpt(this)">📍 Keterjangkauan kantor</button>
+              <button class="opt-btn" onclick="selectOpt(this)">✅ Ketuntasan tindak lanjut</button>
+            </div>
+            <div class="survey-nav">
+              <button class="btn secondary" onclick="prevStep()">← Kembali</button>
+              <button class="btn" onclick="nextStep()">Lanjut →</button>
+            </div>
+          </div>
+
+          <!-- Step 4: Saran -->
+          <div class="survey-step" id="step4">
+            <div class="q-label">Pertanyaan 4 dari 4</div>
+            <div class="q-text">Ada saran atau masukan untuk kami?</div>
+            <textarea class="survey-text" id="saranText" placeholder="Tulis saran Anda di sini… (opsional)"></textarea>
+            <div style="font-size:12px;color:var(--text-soft);margin-top:6px;margin-bottom:14px">Masukan Anda sangat berharga untuk meningkatkan kualitas pelayanan kami.</div>
+            <div class="survey-nav">
+              <button class="btn secondary" onclick="prevStep()">← Kembali</button>
+              <button class="btn" style="background:var(--green)" onclick="submitSurvey()">✓ Kirim Survei</button>
+            </div>
+          </div>
+
+          <!-- Success -->
+          <div class="survey-step" id="stepDone">
+            <div class="success-card">
+              <div class="success-icon">🎉</div>
+              <h2>Terima Kasih!</h2>
+              <p style="margin-bottom:14px">Penilaian Anda telah kami terima dan akan digunakan untuk meningkatkan kualitas layanan Satpol PP Kaltara.</p>
+              <button class="btn" onclick="resetSurvey()">Isi Survei Lagi</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: BAHASA DAERAH -->
+  <div class="tab-panel" id="tab-bahasa">
+    <div class="card">
+      <div class="card-head"><h3>🗣️ Pilih Bahasa Daerah</h3></div>
+      <div class="card-body">
+        <p style="color:var(--text-soft);margin-bottom:20px;font-size:14px">Website ini tersedia dalam beberapa bahasa daerah Kalimantan Utara. Pilih bahasa yang Anda inginkan.</p>
+        <div class="grid-3">
+          <div class="card" style="cursor:pointer;transition:transform .2s" onclick="selectLang('Tidung',this)" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+            <div class="card-body" style="text-align:center;padding:24px 16px">
+              <div style="font-size:40px;margin-bottom:10px">🏔️</div>
+              <b style="font-size:16px">Bahasa Tidung</b>
+              <p style="font-size:13px;color:var(--text-soft);margin-top:4px">Suku Tidung — Kab. Nunukan & Tana Tidung</p>
+              <div style="margin-top:12px;padding:10px;background:var(--brand-xlight);border-radius:10px;font-size:13px;font-style:italic;color:var(--brand)">"Selamat datang" → Mapayo</div>
+            </div>
+          </div>
+          <div class="card" style="cursor:pointer;transition:transform .2s" onclick="selectLang('Bulungan',this)" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+            <div class="card-body" style="text-align:center;padding:24px 16px">
+              <div style="font-size:40px;margin-bottom:10px">🌿</div>
+              <b style="font-size:16px">Bahasa Bulungan</b>
+              <p style="font-size:13px;color:var(--text-soft);margin-top:4px">Suku Bulungan — Kab. Bulungan</p>
+              <div style="margin-top:12px;padding:10px;background:var(--brand-xlight);border-radius:10px;font-size:13px;font-style:italic;color:var(--brand)">"Terima kasih" → Salama</div>
+            </div>
+          </div>
+          <div class="card" style="cursor:pointer;transition:transform .2s" onclick="selectLang('Dayak Lundayeh',this)" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+            <div class="card-body" style="text-align:center;padding:24px 16px">
+              <div style="font-size:40px;margin-bottom:10px">🌳</div>
+              <b style="font-size:16px">Dayak Lundayeh</b>
+              <p style="font-size:13px;color:var(--text-soft);margin-top:4px">Suku Lundayeh — Kab. Nunukan & Malinau</p>
+              <div style="margin-top:12px;padding:10px;background:var(--brand-xlight);border-radius:10px;font-size:13px;font-style:italic;color:var(--brand)">"Halo" → Kelagi</div>
+            </div>
+          </div>
+        </div>
+        <div id="langNotif" style="margin-top:16px;padding:14px 16px;background:var(--green-light);border-radius:12px;font-size:14px;font-weight:600;color:var(--green);display:none"></div>
+        <p style="font-size:12px;color:var(--text-soft);margin-top:16px">* Fitur terjemahan penuh sedang dalam pengembangan. Saat ini tersedia versi demo. Jika Anda ingin berkontribusi sebagai penerjemah, hubungi kami.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Theme ──
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  ['darkBtn','lightBtn','contrastBtn'].forEach(id=>document.getElementById(id)?.classList.remove('active'));
+  const map={dark:'darkBtn',light:'lightBtn',contrast:'contrastBtn'};
+  document.getElementById(map[t])?.classList.add('active');
+  localStorage.setItem('satpolTheme',t);
+}
+(function(){ const t=localStorage.getItem('satpolTheme'); if(t) setTheme(t); else document.getElementById('lightBtn')?.classList.add('active'); })();
+
+// ── Font Size ──
+let fontSize = 100;
+function changeFontSize(d){ fontSize = Math.min(140,Math.max(90,fontSize+d*5)); document.documentElement.style.fontSize=fontSize+'%'; }
+
+// ── TTS ──
+function readPage(){ if(!window.speechSynthesis) return; const text = document.querySelector('.tab-panel.active')?.textContent||''; const utt = new SpeechSynthesisUtterance(text.substring(0,500)); utt.lang='id-ID'; speechSynthesis.speak(utt); }
+
+// ── Tabs ──
+function switchTab(id, btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+// ── Download mock ──
+function mockDownload(btn, fname){
+  const orig = btn.textContent;
+  btn.textContent = '⏳ Menyiapkan…';
+  btn.disabled = true;
+  setTimeout(()=>{ btn.textContent = '✓ Berhasil!'; setTimeout(()=>{ btn.textContent=orig; btn.disabled=false; },1500); },1200);
+}
+
+// ── Survey ──
+let step = 1; const totalSteps = 4;
+let rating = 0;
+
+function updateProgress(){ document.getElementById('surveyProgress').style.width = (((step-1)/totalSteps)*100)+'%'; }
+
+document.querySelectorAll('.star').forEach(s=>{
+  s.addEventListener('click',()=>{
+    rating = +s.dataset.v;
+    document.querySelectorAll('.star').forEach((st,i)=>st.classList.toggle('sel',i<rating));
+    const labels=['','Sangat Tidak Puas','Tidak Puas','Cukup Puas','Puas','Sangat Puas'];
+    document.getElementById('starLabel').textContent = labels[rating]+' ('+rating+'/5)';
+  });
+});
+
+function selectOpt(btn){ btn.classList.toggle('sel'); }
+
+function nextStep(){
+  if(step===1 && !rating){ alert('Harap pilih nilai bintang terlebih dahulu.'); return; }
+  document.getElementById('step'+step).classList.remove('active');
+  step++;
+  if(step<=totalSteps){ document.getElementById('step'+step).classList.add('active'); }
+  updateProgress();
+}
+function prevStep(){
+  document.getElementById('step'+step).classList.remove('active');
+  step--;
+  document.getElementById('step'+step).classList.add('active');
+  updateProgress();
+}
+function submitSurvey(){
+  document.getElementById('step4').classList.remove('active');
+  document.getElementById('stepDone').classList.add('active');
+  document.getElementById('surveyProgress').style.width='100%';
+}
+function resetSurvey(){
+  step=1; rating=0;
+  document.querySelectorAll('.survey-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('step1').classList.add('active');
+  document.querySelectorAll('.star').forEach(s=>s.classList.remove('sel'));
+  document.getElementById('starLabel').textContent='Pilih bintang untuk menilai';
+  document.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('saranText').value='';
+  updateProgress();
+}
+
+// ── Language select ──
+function selectLang(lang, card){
+  document.querySelectorAll('.card').forEach(c=>c.style.border='');
+  card.style.border='2px solid var(--brand)';
+  const el=document.getElementById('langNotif');
+  el.style.display='block';
+  el.textContent='✓ Bahasa '+lang+' dipilih. Terjemahan penuh akan tersedia segera. Terima kasih atas minat Anda!';
+}
+</script>
+</body>
+</html>

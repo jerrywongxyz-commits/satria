@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Berita & Agenda - Satpol PP Kaltara</title>
+  <meta name="theme-color" content="#0a5c8a" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Lora:wght@600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --brand: #0a5c8a; --brand-mid: #0e7bb5; --brand-light: #d6edf7; --brand-xlight:#edf6fb;
+      --gold: #c9922a; --text: #12213a; --text-soft: #4a5f78; --border: #dce8f0;
+      --radius: 14px; --radius-sm: 8px; --shadow: 0 4px 20px rgba(10,92,138,.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); background: #f4f8fb; line-height: 1.6; }
+    a { color: var(--brand); text-decoration: none; }
+    .container { max-width: 1100px; margin-inline: auto; padding: 0 20px; }
+    
+    /* Navigasi (Sama dengan Profil) */
+    header.topbar { background: linear-gradient(135deg, #08456d 0%, #0a5c8a 60%, #0d76b0 100%); color: #fff; border-bottom: 3px solid var(--gold); }
+    header .top-inner { display: flex; align-items: center; gap: 18px; padding: 12px 0; }
+    header img.logo { width: 50px; height: 50px; object-fit: contain; }
+    .site-title b { font-size: 16px; font-family: 'Lora', serif; font-weight: 700; line-height: 1.2; display: block;}
+    .site-title small { font-size: 12px; opacity: .82; font-weight: 500; }
+    
+    nav.main { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,.97); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); box-shadow: 0 2px 12px rgba(10,92,138,.07); }
+    nav .nav-inner { display: flex; align-items: center; gap: 10px; padding: 10px 0; flex-wrap: wrap; }
+    .nav-links { display: flex; gap: 4px; flex-wrap: wrap; margin-right: auto; }
+    .nav-links a { padding: 8px 14px; border-radius: var(--radius-sm); font-weight: 600; font-size: 14px; color: var(--text-soft); transition: all .2s;}
+    .nav-links a:hover, .nav-links a.active { background: var(--brand-xlight); color: var(--brand); }
+    .menu-btn { display: none; background: var(--brand-xlight); color: var(--brand); border: none; padding: 8px 14px; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; }
+
+    .page-header { padding: 48px 0 32px; text-align: center; background: #fff; border-bottom: 1px solid var(--border); }
+    .page-header h1 { font-family: 'Lora', serif; font-size: 32px; margin: 0 0 12px; color: var(--brand); }
+    
+    .section-title { font-family: 'Lora', serif; font-size: 24px; border-left: 4px solid var(--gold); padding-left: 12px; margin: 48px 0 24px; }
+    
+    /* Grid Berita */
+    .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+    .news-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: transform .2s, box-shadow .2s; }
+    .news-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+    .news-card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+    .news-card .p { padding: 20px; }
+    .news-card h3 { margin: 8px 0 12px; font-size: 18px; line-height: 1.3; }
+    
+    .chip { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .chip.rilis { background: var(--brand-xlight); color: var(--brand); }
+    .chip.edukasi { background: #e8f7ee; color: #1a7a3e; }
+
+    /* Daftar Agenda */
+    .agenda-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+    .agenda-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; }
+    .agenda-item { display: flex; gap: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .agenda-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .agenda-date { background: var(--brand-xlight); border: 1px solid var(--brand-light); border-radius: 12px; padding: 12px; text-align: center; min-width: 80px; flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; }
+    .agenda-date b { display: block; font-size: 24px; color: var(--brand); line-height: 1; }
+    .agenda-date span { font-size: 12px; color: var(--text-soft); font-weight: 600; text-transform: uppercase; }
+    
+    /* Search Bar Berita */
+    .search-box { display: flex; gap: 12px; margin-bottom: 24px; }
+    .search-box input { flex: 1; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; }
+    .search-box button { padding: 12px 24px; background: var(--brand); color: #fff; border: none; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; }
+
+    footer { background: linear-gradient(135deg, #08375a 0%, #0a4d73 100%); color: #b8d8eb; padding: 40px 0; text-align: center; border-top: 3px solid var(--gold); margin-top: 60px; }
+
+    @media (max-width: 768px) {
+      .menu-btn { display: block; }
+      .nav-links { display: none; width: 100%; flex-direction: column; }
+      .nav-links.open { display: flex; }
+      .page-header h1 { font-size: 26px; }
+      .agenda-item { flex-direction: column; gap: 12px; }
+      .agenda-date { flex-direction: row; align-items: baseline; gap: 6px; padding: 8px; justify-content: flex-start; }
+      .agenda-date b { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container top-inner">
+      <img class="logo" src="https://simpeg.kaltaraprov.go.id/logo/ori_prov_kaltara.png" alt="Logo Kaltara" />
+      <div class="site-title">
+        <b>Satuan Polisi Pamong Praja</b>
+        <small>Provinsi Kalimantan Utara</small>
+      </div>
+    </div>
+  </header>
+
+  <nav class="main">
+    <div class="container nav-inner">
+      <button class="menu-btn" id="menuBtn">☰ Menu Navigasi</button>
+      <div class="nav-links" id="navLinks">
+        <a href="beranda">Beranda</a>
+        <a href="profil">Profil Instansi</a>
+        <a href="layanan-pengaduan">Layanan Pengaduan</a>
+        <a href="informasi" class="active">Berita & Agenda</a>
+        <a href="regulasi">Regulasi & PPID</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="page-header">
+    <div class="container">
+      <h1>Publikasi & Agenda Giat</h1>
+      <p>Pusat informasi kegiatan penertiban, edukasi masyarakat, dan rilis pers resmi dari Satpol PP Kaltara.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    
+    <h2 class="section-title">📅 Agenda Penertiban Mendatang</h2>
+    <div class="agenda-card">
+      <ul class="agenda-list">
+        <li class="agenda-item">
+          <div class="agenda-date"><b>10</b><span>Sep</span></div>
+          <div>
+            <h3 style="margin: 0 0 6px; color: var(--text);">Operasi Penertiban Reklame Liar</h3>
+            <p style="margin: 0; color: var(--text-soft); font-size: 14px;"><strong>Lokasi:</strong> Koridor Utama Tanjung Selor<br><strong>Pelaksana:</strong> Bidang Penegakan Perda</p>
+          </div>
+        </li>
+        <li class="agenda-item">
+          <div class="agenda-date"><b>14</b><span>Sep</span></div>
+          <div>
+            <h3 style="margin: 0 0 6px; color: var(--text);">Patroli Gabungan Kawasan Pasar Induk</h3>
+            <p style="margin: 0; color: var(--text-soft); font-size: 14px;"><strong>Lokasi:</strong> Pasar Induk & Sekitarnya<br><strong>Pelaksana:</strong> Bidang Trantibum</p>
+          </div>
+        </li>
+        <li class="agenda-item">
+          <div class="agenda-date"><b>18</b><span>Sep</span></div>
+          <div>
+            <h3 style="margin: 0 0 6px; color: var(--text);">Simulasi Linmas & Mitigasi Bencana</h3>
+            <p style="margin: 0; color: var(--text-soft); font-size: 14px;"><strong>Lokasi:</strong> Alun-alun Kota<br><strong>Pelaksana:</strong> Bidang Perlindungan Masyarakat</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <h2 class="section-title">📰 Kabar Terbaru</h2>
+    
+    <div class="search-box">
+      <input type="text" placeholder="Cari judul berita atau kata kunci..." aria-label="Cari Berita">
+      <button type="button">Cari Berita</button>
+    </div>
+
+    <div class="news-grid">
+      <a href="#" class="news-card">
+        <img src="https://placehold.co/640x360/0a5c8a/ffffff?text=Operasi+Penertiban" alt="Giat 1" />
+        <div class="p">
+          <span class="chip rilis">Rilis Pers</span>
+          <h3>Gelar Pasukan Operasi Ketertiban Kawasan Niaga Tanjung Selor</h3>
+          <p style="color: var(--text-soft); font-size: 14px; margin-bottom: 0;">Penertiban PKL yang menggunakan bahu jalan telah diselesaikan dengan pendekatan humanis...</p>
+          <div style="font-size:12px;color:var(--text-soft); margin-top: 16px; font-weight: 600;">09 Sep 2025 • Dibaca 120 kali</div>
+        </div>
+      </a>
+      
+      <a href="#" class="news-card">
+        <img src="https://placehold.co/640x360/1a7a3e/ffffff?text=Edukasi+PKL" alt="Giat 2" />
+        <div class="p">
+          <span class="chip edukasi">Edukasi</span>
+          <h3>Sosialisasi Tertib Usaha bagi Pelaku UMKM Area Pasar</h3>
+          <p style="color: var(--text-soft); font-size: 14px; margin-bottom: 0;">Satpol PP memberikan pembinaan mengenai batasan area jualan agar tidak mengganggu lalu lintas...</p>
+          <div style="font-size:12px;color:var(--text-soft); margin-top: 16px; font-weight: 600;">05 Sep 2025 • Dibaca 85 kali</div>
+        </div>
+      </a>
+      
+      <a href="#" class="news-card">
+        <img src="https://placehold.co/640x360/c9922a/ffffff?text=Patroli+Gabungan" alt="Giat 3" />
+        <div class="p">
+          <span class="chip rilis">Rilis Pers</span>
+          <h3>Patroli Gabungan Cipta Kondisi Bersama TNI/Polri</h3>
+          <p style="color: var(--text-soft); font-size: 14px; margin-bottom: 0;">Sinergi aparat di wilayah perbatasan untuk menekan angka gangguan ketentraman masyarakat...</p>
+          <div style="font-size:12px;color:var(--text-soft); margin-top: 16px; font-weight: 600;">31 Agu 2025 • Dibaca 210 kali</div>
+        </div>
+      </a>
+    </div>
+    
+    <div style="text-align: center; margin-top: 40px;">
+      <button style="background: white; border: 1.5px solid var(--border); padding: 12px 32px; border-radius: 999px; font-weight: 600; cursor: pointer; color: var(--text-soft);">Muat Lebih Banyak Berita ↓</button>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <img src="https://simpeg.kaltaraprov.go.id/logo/ori_prov_kaltara.png" alt="Logo" style="width:50px; margin-bottom:12px" />
+      <p style="margin: 0; opacity: 0.9;">© 2026 Satpol PP Provinsi Kalimantan Utara.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Toggle Mobile Menu
+    document.getElementById('menuBtn').addEventListener('click', function() {
+      document.getElementById('navLinks').classList.toggle('open');
+    });
+  </script>
+</body>
+</html>

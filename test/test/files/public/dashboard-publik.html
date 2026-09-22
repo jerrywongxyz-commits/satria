@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard Publik Trantibum - Satpol PP Kaltara</title>
+  <meta name="theme-color" content="#0a5c8a" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+  
+  <style>
+    :root {
+      --brand: #0a5c8a; --brand-mid: #0e7bb5; --brand-light: #d6edf7; --brand-xlight:#edf6fb;
+      --gold: #c9922a; --text: #12213a; --text-soft: #4a5f78; --border: #dce8f0; --bg: #f4f8fb;
+      --radius: 14px; --radius-sm: 8px; --shadow: 0 4px 20px rgba(10,92,138,.08);
+      --ok: #1a7a3e; --warn: #c9922a; --new: #4a5f78;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); background: var(--bg); line-height: 1.6; }
+    a { color: var(--brand); text-decoration: none; }
+    .container { max-width: 1100px; margin-inline: auto; padding: 0 20px; }
+    
+    /* Navigasi Standar */
+    header.topbar { background: linear-gradient(135deg, #08456d 0%, #0a5c8a 60%, #0d76b0 100%); color: #fff; border-bottom: 3px solid var(--gold); }
+    header .top-inner { display: flex; align-items: center; gap: 18px; padding: 12px 0; }
+    header img.logo { width: 50px; height: 50px; object-fit: contain; }
+    .site-title b { font-size: 16px; font-family: 'Lora', serif; font-weight: 700; line-height: 1.2; display: block;}
+    .site-title small { font-size: 12px; opacity: .82; font-weight: 500; }
+    
+    nav.main { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,.97); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); box-shadow: 0 2px 12px rgba(10,92,138,.07); }
+    nav .nav-inner { display: flex; align-items: center; gap: 10px; padding: 10px 0; flex-wrap: wrap; }
+    .nav-links { display: flex; gap: 4px; flex-wrap: wrap; margin-right: auto; }
+    .nav-links a { padding: 8px 14px; border-radius: var(--radius-sm); font-weight: 600; font-size: 14px; color: var(--text-soft); transition: all .2s;}
+    .nav-links a:hover, .nav-links a.active { background: var(--brand-xlight); color: var(--brand); }
+    .menu-btn { display: none; background: var(--brand-xlight); color: var(--brand); border: none; padding: 8px 14px; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; }
+
+    /* Page Header */
+    .page-header { padding: 48px 0 32px; text-align: center; background: #fff; border-bottom: 1px solid var(--border); }
+    .page-header h1 { font-family: 'Lora', serif; font-size: 32px; margin: 0 0 12px; color: var(--brand); }
+    .page-header p { color: var(--text-soft); max-width: 700px; margin: 0 auto; font-size: 15px; }
+
+    /* Layout & Cards */
+    .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; padding: 40px 0 60px; }
+    .card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+    .card-title { font-family: 'Lora', serif; font-size: 18px; font-weight: 700; margin: 0 0 16px; color: var(--brand); border-bottom: 1px solid var(--brand-xlight); padding-bottom: 12px;}
+
+    /* Map Styles */
+    .map-wrapper { position: relative; border-radius: var(--radius-sm); overflow: hidden; height: 500px; border: 1px solid var(--border); background: #e8f2f8; }
+    #map { width: 100%; height: 100%; z-index: 1; }
+    .map-loading {
+      position: absolute; inset: 0; background: rgba(255,255,255,0.85); z-index: 500;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; color: var(--brand); font-size: 15px; backdrop-filter: blur(2px);
+    }
+    .legend-box {
+      position: absolute; bottom: 20px; left: 20px; background: rgba(255,255,255,0.95);
+      border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px;
+      font-size: 13px; z-index: 400; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .legend-title { font-weight: 700; font-size: 12px; text-transform: uppercase; color: var(--text-soft); margin-bottom: 8px; letter-spacing: 0.5px;}
+    .legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .legend-row:last-child { margin-bottom: 0; }
+    .legend-swatch { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); flex-shrink: 0; }
+
+    /* Stats Styles */
+    .stat-huge { font-size: 42px; font-weight: 800; color: var(--brand); line-height: 1; margin-bottom: 4px; }
+    .sync-meta { font-size: 12px; color: var(--text-soft); display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); }
+    .btn-sync { background: var(--brand-xlight); color: var(--brand); border: none; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .btn-sync:hover { background: var(--brand-light); }
+    
+    .list-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .list-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .list-name { font-weight: 500; display: flex; align-items: center; gap: 8px; }
+    .list-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .list-count { font-weight: 700; color: var(--brand); }
+
+    .progress-bar-wrap { margin-top: 8px; }
+    .progress-bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; margin-bottom: 12px; background: var(--border); }
+    .progress-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; color: var(--text-soft); }
+    .progress-legend span { display: flex; align-items: center; gap: 6px; }
+
+    .banner { background: #fdf3e3; border: 1px solid #f5d9a0; color: #a26d00; padding: 16px; border-radius: var(--radius-sm); margin-bottom: 24px; font-size: 14px; font-weight: 500; display: none; }
+    .banner.show { display: block; }
+
+    footer { background: linear-gradient(135deg, #08375a 0%, #0a4d73 100%); color: #b8d8eb; padding: 40px 0; text-align: center; border-top: 3px solid var(--gold); }
+
+    /* Leaflet Overrides */
+    .leaflet-popup-content-wrapper { border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; box-shadow: var(--shadow); }
+    .popup-title { font-family: 'Lora', serif; font-weight: 700; font-size: 16px; margin: 0 0 4px; color: var(--brand); }
+    .popup-total { font-size: 13px; color: var(--text-soft); margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .popup-cat { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; }
+
+    @media (max-width: 900px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .menu-btn { display: block; }
+      .nav-links { display: none; width: 100%; flex-direction: column; }
+      .nav-links.open { display: flex; }
+      .map-wrapper { height: 400px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container top-inner">
+      <img class="logo" src="https://simpeg.kaltaraprov.go.id/logo/ori_prov_kaltara.png" alt="Logo Kaltara" />
+      <div class="site-title">
+        <b>Satuan Polisi Pamong Praja</b>
+        <small>Provinsi Kalimantan Utara</small>
+      </div>
+    </div>
+  </header>
+
+  <nav class="main">
+    <div class="container nav-inner">
+      <button class="menu-btn" id="menuBtn">☰ Menu Navigasi</button>
+      <div class="nav-links" id="navLinks">
+        <a href="beranda">Beranda</a>
+        <a href="profil">Profil Instansi</a>
+        <a href="layanan-pengaduan">Layanan Pengaduan</a>
+        <a href="informasi">Berita & Agenda</a>
+        <a href="regulasi">Regulasi & PPID</a>
+        <a href="dashboard-publik" class="active" style="display:none">Dashboard</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="page-header">
+    <div class="container">
+      <h1>Peta Sebaran Laporan Trantibum</h1>
+      <p>Dashboard transparansi data penanganan gangguan ketertiban umum oleh Satpol PP Kaltara, diperbarui secara real-time dari sistem pusat.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="banner" id="error-banner">
+      ⚠ Gagal mengambil data sinkronisasi terbaru. Menampilkan rekapan data terakhir yang berhasil dimuat. <span id="error-detail"></span>
+    </div>
+
+    <div class="dashboard-grid">
+      
+      <!-- Kolom Kiri: PETA -->
+      <div>
+        <div class="card" style="padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div class="card-title" style="border:none; padding:0; margin:0;">🗺️ Peta Kepadatan Laporan</div>
+            <div style="font-size: 12px; color: var(--text-soft);">Ketuk wilayah untuk detail</div>
+          </div>
+          
+          <div class="map-wrapper">
+            <div id="map"></div>
+            <div class="map-loading" id="map-loading">Mengambil data dari pusat...</div>
+            <div class="legend-box">
+              <div class="legend-title">Intensitas Laporan</div>
+              <div id="legend-rows"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kolom Kanan: STATISTIK -->
+      <div style="display: flex; flex-direction: column; gap: 24px;">
+        
+        <div class="card">
+          <div class="card-title">📊 Total Pengaduan</div>
+          <div class="stat-huge" id="stat-total">-</div>
+          <div style="font-size: 14px; color: var(--text-soft);">Laporan tercatat se-Kaltara</div>
+          
+          <div class="sync-meta">
+            <span id="sync-time">Memuat status...</span>
+            <button class="btn-sync" id="refresh-btn">↻ Sinkron</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📈 Status Penanganan</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar" id="status-bar"></div>
+            <div class="progress-legend" id="status-legend"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🏆 Peringkat Wilayah</div>
+          <div id="region-list">
+            <div style="font-size:13px; color:var(--text-soft); padding:10px 0;">Memuat data...</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🏷️ Klasifikasi Terbanyak</div>
+          <div id="cat-list">
+            <div style="font-size:13px; color:var(--text-soft); padding:10px 0;">Memuat data...</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <img src="https://simpeg.kaltaraprov.go.id/logo/ori_prov_kaltara.png" alt="Logo" style="width:50px; margin-bottom:12px" />
+      <p style="margin: 0; opacity: 0.9;">© 2026 Satpol PP Provinsi Kalimantan Utara.</p>
+      <p style="margin: 6px 0 0; opacity: 0.7; font-size: 12px; max-width: 600px; margin-inline: auto;">
+        <b>Catatan Transparansi:</b> Data pada dasbor publik ini diagregasi dan dianonimkan untuk melindungi identitas pelapor dan kerahasiaan operasional sesuai UU KIP dan UU PDP.
+      </p>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+  <script>
+    // Toggle Mobile Menu
+    document.getElementById('menuBtn').addEventListener('click', function() {
+      document.getElementById('navLinks').classList.toggle('open');
+    });
+
+    /* KONFIGURASI SUMBER DATA (Pastikan mengarah ke Sheet Publik Anonim) */
+    const SHEET_ID = '1zgfpQLZ-THJIXDA8c1365qYfKepAfdv-ETuAVv5LIX4';
+    const SHEET_GID = '0';
+    const REFRESH_MS = 60000;
+
+    /* TEMA WARNA YANG DISESUAIKAN DENGAN BRAND */
+    const STATUS_COLORS = { confirmed:'#c9922a', selesai:'#1a7a3e', new:'#4a5f78' };
+    const STATUS_LABELS = { confirmed:'Diproses', selesai:'Selesai', new:'Baru Masuk' };
+
+    // Warna Biru Satpol PP untuk Choropleth (Dari sangat muda ke sangat pekat)
+    function colorFor(count){
+      if(count === 0) return '#f4f8fb';
+      if(count <= 1) return '#d6edf7';
+      if(count <= 3) return '#9acde6';
+      if(count <= 5) return '#4da5d4';
+      if(count <= 7) return '#0e7bb5';
+      return '#0a5c8a';
+    }
+
+    const REGION_ALIASES = [
+      {key:'Kota Tarakan', test:/tarakan/i},
+      {key:'Kabupaten Bulungan', test:/bulungan/i},
+      {key:'Kabupaten Malinau', test:/malinau/i},
+      {key:'Kabupaten Nunukan', test:/nunukan/i},
+      {key:'Kabupaten Tana Tidung', test:/tana\s*tidung/i}
+    ];
+
+    /* GeoJSON Kaltara (Disederhanakan untuk performa web publik) */
+    const REGIONS_GEOJSON = {"type":"FeatureCollection","features":[
+      {"type":"Feature","properties":{"region":"Kabupaten Bulungan"},"geometry":{"type":"Polygon","coordinates":[[[117.811,2.326],[117.759,2.333],[116.845,2.460],[116.476,2.316],[116.292,2.124],[115.989,2.260],[116.233,2.488],[116.324,2.646],[116.493,2.828],[116.661,3.004],[116.744,3.152],[116.775,3.340],[116.924,3.398],[117.110,3.362],[117.205,3.340],[117.283,3.393],[117.388,3.322],[117.360,3.253],[117.379,3.267],[117.271,3.243],[117.270,3.277],[117.263,3.251],[117.157,3.261],[117.100,3.297],[117.079,3.303],[117.144,3.275],[117.246,3.219],[117.234,3.179],[117.259,3.144],[117.252,3.122],[117.291,3.134],[117.388,3.138],[117.365,3.123],[117.349,3.137],[117.363,3.117],[117.406,3.114],[117.360,3.111],[117.351,3.078],[117.365,3.039],[117.360,3.021],[117.371,3.032],[117.370,2.983],[117.334,2.916],[117.319,2.945],[117.336,2.884],[117.336,2.804],[117.321,2.784],[117.288,2.755],[117.264,2.765],[117.209,2.747],[117.164,2.754],[117.112,2.755],[117.087,2.763],[117.023,2.796],[116.963,2.825],[116.903,2.851],[116.816,2.720],[116.792,2.692],[116.768,2.695],[116.794,2.700],[116.829,2.734],[116.918,2.838],[117.044,2.787],[117.085,2.761],[117.133,2.728],[117.177,2.765],[117.202,2.775],[117.232,2.754],[117.271,2.743],[117.329,2.775],[117.327,2.820],[117.353,2.796],[117.384,2.806],[117.399,2.816],[117.410,2.822],[117.422,2.821],[117.437,2.835],[117.480,2.837],[117.541,2.804],[117.577,2.833],[117.565,2.813],[117.575,2.799],[117.563,2.809],[117.581,2.806],[117.613,2.798],[117.599,2.803],[117.594,2.808],[117.584,2.787],[117.580,2.773],[117.594,2.785],[117.609,2.767],[117.602,2.779],[117.625,2.771],[117.635,2.791],[117.630,2.783],[117.634,2.764],[117.627,2.761],[117.632,2.778],[117.677,2.783],[117.666,2.768],[117.654,2.767],[117.655,2.759],[117.652,2.756],[117.649,2.754],[117.655,2.758],[117.663,2.762],[117.682,2.783],[117.695,2.762],[117.702,2.747],[117.700,2.742],[117.704,2.747],[117.684,2.771],[117.732,2.769],[117.741,2.747],[117.738,2.750],[117.747,2.743],[117.747,2.742],[117.750,2.752],[117.790,2.717],[117.803,2.618],[117.944,2.462],[117.955,2.415],[117.906,2.397],[117.811,2.326]]]}},
+      {"type":"Feature","properties":{"region":"Kabupaten Malinau"},"geometry":{"type":"Polygon","coordinates":[[[115.495,1.255],[115.419,1.195],[115.406,1.172],[115.410,1.127],[115.368,1.068],[115.293,1.049],[115.185,1.067],[115.173,1.116],[115.083,1.115],[114.989,1.157],[114.936,1.178],[114.858,1.193],[114.796,1.204],[114.717,1.272],[114.676,1.351],[114.599,1.394],[114.566,1.427],[114.607,1.487],[114.611,1.575],[114.655,1.599],[114.708,1.637],[114.715,1.784],[114.697,1.809],[114.722,1.856],[114.792,1.846],[114.819,1.892],[114.882,1.915],[114.852,1.965],[114.872,2.013],[114.807,2.024],[114.809,2.064],[114.818,2.127],[114.736,2.133],[114.784,2.200],[114.870,2.259],[114.938,2.280],[114.966,2.296],[114.948,2.321],[114.998,2.349],[115.024,2.364],[115.050,2.404],[115.103,2.434],[115.144,2.475],[115.204,2.471],[115.257,2.540],[115.212,2.573],[115.177,2.610],[115.117,2.588],[115.096,2.623],[115.120,2.689],[115.107,2.722],[115.140,2.775],[115.120,2.805],[115.111,2.825],[115.175,2.931],[115.249,2.965],[115.288,3.035],[115.331,2.975],[115.393,2.979],[115.437,3.014],[115.486,3.018],[115.521,3.065],[115.529,3.129],[115.559,3.171],[115.515,3.222],[115.536,3.316],[115.543,3.359],[115.587,3.449],[115.609,3.447],[115.656,3.439],[115.714,3.437],[115.769,3.463],[115.807,3.470],[115.838,3.491],[115.883,3.469],[115.968,3.522],[115.956,3.620],[115.912,3.689],[115.943,3.760],[115.926,3.798],[115.909,3.840],[115.926,3.882],[115.922,3.931],[115.951,3.960],[115.965,4.047],[115.970,4.117],[116.024,4.089],[116.085,4.117],[116.125,4.120],[116.164,4.112],[116.198,4.074],[116.237,4.046],[116.283,4.057],[116.319,4.062],[116.354,4.033],[116.369,3.993],[116.382,3.975],[116.420,3.883],[116.466,3.807],[116.512,3.748],[116.569,3.722],[116.608,3.691],[116.716,3.699],[116.738,3.659],[116.769,3.604],[116.736,3.555],[116.705,3.486],[116.703,3.429],[116.738,3.390],[116.775,3.340],[116.805,3.199],[116.741,3.170],[116.724,3.104],[116.742,3.035],[116.661,3.004],[116.639,2.974],[116.608,2.926],[116.581,2.890],[116.493,2.828],[116.434,2.807],[116.360,2.712],[116.314,2.664],[116.323,2.597],[116.301,2.544],[116.255,2.479],[116.196,2.440],[116.112,2.391],[116.110,2.357],[116.059,2.313],[116.028,2.253],[115.989,2.260],[116.052,2.150],[116.130,2.167],[116.185,2.146],[116.258,2.108],[116.217,2.063],[116.229,2.013],[116.196,1.951],[116.185,1.844],[116.105,1.664],[116.065,1.629],[116.039,1.557],[116.009,1.528],[115.955,1.492],[115.855,1.437],[115.835,1.375],[115.772,1.359],[115.712,1.265],[115.495,1.255]]]}},
+      {"type":"Feature","properties":{"region":"Kabupaten Nunukan"},"geometry":{"type":"Polygon","coordinates":[[[115.769,3.463],[115.714,3.437],[115.633,3.464],[115.619,3.510],[115.593,3.594],[115.571,3.657],[115.589,3.782],[115.628,3.870],[115.587,3.905],[115.589,3.942],[115.656,3.987],[115.665,4.064],[115.688,4.153],[115.732,4.192],[115.764,4.240],[115.795,4.237],[115.824,4.224],[115.878,4.295],[115.879,4.382],[115.909,4.388],[115.999,4.347],[116.027,4.331],[116.075,4.270],[116.132,4.329],[116.170,4.384],[116.218,4.381],[116.262,4.361],[116.293,4.372],[116.357,4.383],[116.384,4.360],[116.418,4.326],[116.440,4.288],[116.488,4.332],[116.535,4.321],[116.563,4.390],[116.582,4.377],[116.616,4.337],[116.664,4.345],[116.732,4.351],[116.786,4.339],[116.829,4.326],[116.910,4.364],[116.961,4.337],[117.006,4.321],[117.044,4.343],[117.142,4.343],[117.170,4.336],[117.217,4.358],[117.285,4.332],[117.343,4.288],[117.383,4.260],[117.411,4.238],[117.428,4.212],[117.479,4.168],[117.509,4.169],[117.568,4.178],[117.549,4.144],[117.443,4.128],[117.412,4.099],[117.466,4.051],[117.463,3.962],[117.457,3.929],[117.525,3.924],[117.564,3.910],[117.603,3.875],[117.707,3.856],[117.734,3.835],[117.709,3.820],[117.685,3.805],[117.694,3.799],[117.698,3.792],[117.683,3.794],[117.683,3.798],[117.678,3.781],[117.650,3.771],[117.599,3.775],[117.578,3.781],[117.531,3.767],[117.502,3.766],[117.476,3.755],[117.481,3.726],[117.445,3.703],[117.428,3.671],[117.460,3.654],[117.196,3.669],[116.938,3.714],[116.770,3.695],[116.761,3.659],[116.738,3.658],[116.716,3.699],[116.588,3.691],[116.569,3.722],[116.512,3.748],[116.466,3.807],[116.420,3.883],[116.382,3.975],[116.369,3.993],[116.354,4.033],[116.319,4.062],[116.283,4.057],[116.237,4.046],[116.206,4.074],[116.161,4.091],[116.147,4.110],[116.109,4.111],[116.071,4.100],[116.024,4.089],[115.965,4.118],[115.965,4.047],[115.951,3.960],[115.922,3.931],[115.926,3.882],[115.909,3.848],[115.923,3.835],[115.948,3.777],[115.927,3.752],[115.935,3.637],[115.952,3.596],[115.960,3.515],[115.883,3.469],[115.845,3.489],[115.805,3.489],[115.800,3.463],[115.769,3.463]]]}},
+      {"type":"Feature","properties":{"region":"Kabupaten Tana Tidung"},"geometry":{"type":"Polygon","coordinates":[[[117.417,3.339],[117.397,3.407],[117.366,3.440],[117.435,3.349],[117.417,3.339]]]}},
+      {"type":"Feature","properties":{"region":"Kota Tarakan"},"geometry":{"type":"Polygon","coordinates":[[[117.664,3.410],[117.657,3.251],[117.641,3.237],[117.609,3.279],[117.542,3.325],[117.519,3.366],[117.521,3.409],[117.550,3.435],[117.601,3.437],[117.664,3.410]]]}}
+    ]};
+
+    function normStatus(s){
+      if(!s) return 'confirmed';
+      const v = s.trim().toLowerCase();
+      if(v === 'selesai') return 'selesai';
+      if(v === 'new') return 'new';
+      return 'confirmed';
+    }
+
+    function normRegion(raw){
+      if(!raw) return null;
+      const found = REGION_ALIASES.find(r => r.test.test(raw));
+      return found ? found.key : null;
+    }
+
+    function cellText(row, idx){
+      if(!row.c || idx < 0 || idx >= row.c.length) return '';
+      const c = row.c[idx];
+      if(!c) return '';
+      if(c.f !== undefined && c.f !== null && c.f !== '') return String(c.f);
+      if(c.v !== undefined && c.v !== null) return String(c.v);
+      return '';
+    }
+
+    /* ============ INISIALISASI PETA ============ */
+    const map = L.map('map', { scrollWheelZoom:false, zoomControl:true }).setView([3.1, 116.9], 7.4);
+    let geoLayer = null;
+    let regionAggGlobal = {};
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO', maxZoom: 19
+    }).addTo(map);
+
+    function styleFeature(feature){
+      const name = feature.properties.region;
+      const count = (regionAggGlobal[name] && regionAggGlobal[name].total) || 0;
+      return { fillColor: colorFor(count), weight:1.6, color:'#12213a', fillOpacity:0.75 };
+    }
+
+    function popupHtml(name){
+      const data = regionAggGlobal[name];
+      const total = data ? data.total : 0;
+      let rows = '<div class="popup-cat" style="color:var(--text-soft)">Belum ada laporan tercatat</div>';
+      if(data && Object.keys(data.cats).length){
+        const sorted = Object.entries(data.cats).sort((a,b)=>b[1]-a[1]);
+        rows = sorted.map(([cat,n])=>`<div class="popup-cat"><span>${cat}</span><b>${n}</b></div>`).join('');
+      }
+      return `<div class="popup-title">${name}</div><div class="popup-total"><b>${total}</b> laporan tercatat</div>${rows}`;
+    }
+
+    function initMapLayer(){
+      geoLayer = L.geoJSON(REGIONS_GEOJSON, {
+        style: styleFeature,
+        onEachFeature: (feature, layer)=>{
+          const name = feature.properties.region;
+          layer.bindPopup(popupHtml(name));
+          layer.on({
+            mouseover:(e)=>{ e.target.setStyle({weight:2.5, color:'#c9922a', fillOpacity:0.9}); e.target.bringToFront(); },
+            mouseout:(e)=>{ geoLayer.resetStyle(e.target); },
+            click:(e)=>{ map.fitBounds(e.target.getBounds(), {maxZoom:9}); }
+          });
+        }
+      }).addTo(map);
+      map.fitBounds(geoLayer.getBounds(), {padding:[18,18]});
+
+      const legendSteps = [
+        {label:'0 laporan', color:'#f4f8fb'}, {label:'1 laporan', color:'#d6edf7'},
+        {label:'2-3 laporan', color:'#9acde6'}, {label:'4-5 laporan', color:'#4da5d4'},
+        {label:'6-7 laporan', color:'#0e7bb5'}, {label:'8+ laporan', color:'#0a5c8a'}
+      ];
+      document.getElementById('legend-rows').innerHTML = legendSteps.map(s=>
+        `<div class="legend-row"><span class="legend-swatch" style="background:${s.color}"></span>${s.label}</div>`
+      ).join('');
+    }
+    initMapLayer();
+
+    /* ============ RENDER DATA ============ */
+    let ALL_TICKETS = [];
+
+    function render(){
+      const regionAgg = {};
+      const catAgg = {};
+      const statusAgg = {confirmed:0, selesai:0, new:0};
+      let unassigned = 0;
+
+      ALL_TICKETS.forEach(t=>{
+        const st = normStatus(t.status);
+        statusAgg[st]++;
+        if(t.klasifikasi) catAgg[t.klasifikasi] = (catAgg[t.klasifikasi]||0) + 1;
+        if(!t.region){ unassigned++; return; }
+        if(!regionAgg[t.region]) regionAgg[t.region] = {total:0, cats:{}};
+        regionAgg[t.region].total++;
+        if(t.klasifikasi) regionAgg[t.region].cats[t.klasifikasi] = (regionAgg[t.region].cats[t.klasifikasi]||0) + 1;
+      });
+      regionAggGlobal = regionAgg;
+
+      document.getElementById('stat-total').textContent = ALL_TICKETS.length;
+
+      geoLayer.eachLayer(layer=>{
+        layer.setStyle(styleFeature(layer.feature));
+        layer.setPopupContent(popupHtml(layer.feature.properties.region));
+      });
+
+      const ALL_REGIONS = REGIONS_GEOJSON.features.map(f=>f.properties.region);
+      const rankedRegions = ALL_REGIONS.map(name=>({name, total:(regionAgg[name]&&regionAgg[name].total)||0})).sort((a,b)=>b.total-a.total);
+
+      document.getElementById('region-list').innerHTML = rankedRegions.map(r=>`
+        <div class="list-row" style="cursor:pointer" onclick="zoomToRegion('${r.name}')">
+          <span class="list-name"><span class="list-dot" style="background:${colorFor(r.total)}; border:1px solid #ccc"></span>${r.name}</span>
+          <span class="list-count">${r.total}</span>
+        </div>
+      `).join('') + (unassigned > 0 ? `<div class="list-row" style="opacity:0.6"><span class="list-name"><span class="list-dot" style="background:#ddd"></span>Tanpa Wilayah</span><span>${unassigned}</span></div>` : '');
+
+      const statusTotal = statusAgg.confirmed + statusAgg.selesai + statusAgg.new;
+      const statusBar = document.getElementById('status-bar');
+      statusBar.innerHTML = '';
+      ['new','confirmed','selesai'].forEach(key=>{
+        const pct = statusTotal ? (statusAgg[key]/statusTotal*100) : 0;
+        if(pct > 0){
+          const seg = document.createElement('div');
+          seg.style.width = pct + '%'; seg.style.background = STATUS_COLORS[key];
+          statusBar.appendChild(seg);
+        }
+      });
+      document.getElementById('status-legend').innerHTML = ['new','confirmed','selesai'].map(key=>
+        `<span><span class="list-dot" style="background:${STATUS_COLORS[key]}"></span>${STATUS_LABELS[key]} (${statusAgg[key]})</span>`
+      ).join('');
+
+      const sortedCats = Object.entries(catAgg).sort((a,b)=>b[1]-a[1]).slice(0,6);
+      document.getElementById('cat-list').innerHTML = sortedCats.length
+        ? sortedCats.map(([cat,n])=> `<div class="list-row"><span>${cat}</span><span style="font-weight:700; color:var(--text-soft)">${n}</span></div>`).join('')
+        : '<div style="font-size:13px; color:var(--text-soft); padding:10px 0;">Belum ada data.</div>';
+    }
+
+    window.zoomToRegion = function(name){
+      geoLayer.eachLayer(layer=>{
+        if(layer.feature.properties.region === name){
+          map.fitBounds(layer.getBounds(), {maxZoom:9});
+          layer.openPopup();
+        }
+      });
+    };
+
+    /* ============ FETCH DARI GOOGLE SHEETS JSONP ============ */
+    function loadSheetJSONP(){
+      return new Promise((resolve, reject)=>{
+        const cbName = 'gvizCB_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
+        const scriptId = 'gviz-script-' + cbName;
+        let settled = false;
+
+        const cleanup = ()=>{ delete window[cbName]; const s = document.getElementById(scriptId); if(s) s.remove(); };
+        const timer = setTimeout(()=>{ if(!settled){ settled=true; cleanup(); reject(new Error('Waktu tunggu habis.')); } }, 10000);
+
+        window[cbName] = function(response){
+          if(settled) return; settled = true; clearTimeout(timer); cleanup();
+          if(!response || response.status === 'error') return reject(new Error('Respons tidak valid dari server.'));
+          resolve(response.table);
+        };
+
+        const script = document.createElement('script');
+        script.id = scriptId;
+        script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${SHEET_GID}&headers=1&tqx=out:json;responseHandler:${cbName}&t=${Date.now()}`;
+        script.onerror = ()=>{ if(!settled){ settled=true; clearTimeout(timer); cleanup(); reject(new Error('Gagal memuat data.')); } };
+        document.head.appendChild(script);
+      });
+    }
+
+    async function fetchData(){
+      const btn = document.getElementById('refresh-btn');
+      const loading = document.getElementById('map-loading');
+      const banner = document.getElementById('error-banner');
+      btn.disabled = true; btn.textContent = 'Menyinkron...';
+      if(ALL_TICKETS.length === 0) loading.style.display = 'flex';
+
+      try{
+        const table = await loadSheetJSONP();
+        const headers = (table.cols || []).map(c => (c.label || '').trim());
+        const idxKab = headers.findIndex(h => h.toLowerCase().includes('kabupaten, terjadinya') || h.toLowerCase().startsWith('kabupaten'));
+        const idxKlas = headers.findIndex(h => h.toLowerCase().includes('klasifikasi'));
+        const idxStatus = headers.findIndex(h => h.toLowerCase().includes('status'));
+
+        ALL_TICKETS = (table.rows || []).map(row=>{
+          const region = normRegion(idxKab > -1 ? cellText(row, idxKab) : '');
+          const klasifikasi = idxKlas > -1 ? cellText(row, idxKlas) : '';
+          const status = idxStatus > -1 ? cellText(row, idxStatus) : '';
+          return { region, klasifikasi, status, _valid: !!(region || klasifikasi || status) };
+        }).filter(t => t._valid);
+
+        render();
+        banner.classList.remove('show');
+        document.getElementById('sync-time').textContent = 'Diperbarui hari ini, ' + new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+      }catch(err){
+        document.getElementById('error-detail').textContent = ' (' + err.message + ')';
+        banner.classList.add('show');
+        document.getElementById('sync-time').textContent = 'Gagal sinkronisasi';
+      }finally{
+        loading.style.display = 'none'; btn.disabled = false; btn.textContent = '↻ Sinkron';
+      }
+    }
+
+    document.getElementById('refresh-btn').addEventListener('click', fetchData);
+    fetchData();
+    setInterval(fetchData, REFRESH_MS);
+  </script>
+</body>
+</html>

@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+
+<html lang="id">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard Admin - Monitoring Layanan</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<style>
+
+    /* Pastikan map container punya tinggi yang jelas */
+
+    #map-rawan {
+
+        height: 400px; /* Tinggi yang sama dengan yang ada di HTML Anda */
+
+        width: 100%;
+
+    }
+
+</style>
+
+    <style>
+
+        /* CSS Kustom */
+
+        #sidebar {
+
+            min-width: 280px;
+
+            max-width: 280px;
+
+            height: 100vh; /* Memastikan sidebar setinggi viewport */
+
+            position: fixed;
+
+            top: 0;
+
+            left: 0;
+
+            z-index: 100;
+
+            background-color: #f8f9fa; /* Warna latar belakang sidebar */
+
+            padding-top: 20px;
+
+            border-right: 1px solid #dee2e6;
+
+        }
+
+        #content {
+
+            margin-left: 280px; /* Memberikan ruang untuk sidebar */
+
+            padding: 20px;
+
+        }
+
+        .card {
+
+            border: none;
+
+            border-radius: 10px;
+
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+
+            margin-bottom: 20px;
+
+        }
+
+        .kpi-card {
+
+            background-color: #e9ecef;
+
+            text-align: center;
+
+        }
+
+        #chart-tren {
+
+    max-height: 250px; /* Batasi tinggi maksimum canvas */
+
+    height: 100%;     /* Memastikan chart mengisi container */
+
+    width: 100%;
+
+}
+
+/* Opsional: Beri tinggi tetap pada container terdekat */
+
+#content .row .col-md-6 .card-body {
+
+    min-height: 300px; /* Misalnya, beri ruang minimal 300px untuk card */
+
+}
+
+    </style>
+
+</head>
+
+<body>
+
+
+
+    <div id="sidebar">
+
+        
+
+        <h5 class="ms-3 mb-4 text-primary">⚙️ Filter Data</h5>
+
+        <div class="p-3">
+
+            
+
+            <label for="filter-periode" class="form-label fw-bold">Periode Waktu</label>
+
+            <select id="filter-periode" class="form-select mb-3">
+
+                <option value="today">Hari Ini</option>
+
+                <option value="week">7 Hari Terakhir</option>
+
+                <option value="month" selected>Bulan Ini</option>
+
+                <option value="custom">Rentang Kustom</option>
+
+            </select>
+
+
+
+            <label for="filter-layanan" class="form-label fw-bold">Urusan Layanan</label>
+
+            <select id="filter-layanan" class="form-select mb-3">
+
+                <option value="all" selected>Semua Urusan</option>
+
+                <option value="satpolpp">Satpol PP</option>
+
+                <option value="damkar">Damkar</option>
+
+            </select>
+
+
+
+            <label for="filter-lokasi" class="form-label fw-bold">Lokasi / Kecamatan</label>
+
+            <input type="text" id="filter-lokasi" class="form-control mb-4" placeholder="Cari Lokasi...">
+
+            
+
+            <button class="btn btn-primary w-100">Terapkan Filter</button>
+
+        </div>
+
+    </div>
+
+<div id="top-kpi-bar">
+
+        <div class="row">
+
+            
+
+            <div class="col-md-3">
+
+                <div class="card kpi-card p-3">
+
+                    <div class="card-body py-2">
+
+                        <h6 class="text-secondary small">Total Aduan Masuk</h6>
+
+                        <h2 class="fw-bold text-primary">453</h2>
+
+                        <p class="mb-0 small text-muted">Aduan Masuk (Periode Terpilih)</p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="col-md-3">
+
+                <div class="card kpi-card p-3">
+
+                    <div class="card-body py-2">
+
+                        <h6 class="text-secondary small">Rata-rata Waktu Respons</h6>
+
+                        <h2 class="fw-bold text-success">15 Menit</h2>
+
+                        <p class="mb-0 small text-muted">Target: 20 Menit</p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="col-md-3">
+
+                <div class="card kpi-card p-3">
+
+                    <div class="card-body py-2">
+
+                        <h6 class="text-secondary small">Persentase Aduan Selesai</h6>
+
+                        <h2 class="fw-bold text-danger">92%</h2>
+
+                        <p class="mb-0 small text-muted">8% Masih Proses</p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="col-md-3">
+
+                <div class="card kpi-card p-3">
+
+                    <div class="card-body py-2">
+
+                        <h6 class="text-secondary small">Aduan per Urusan</h6>
+
+                        <div class="d-flex justify-content-between">
+
+                            <h5 class="fw-bold text-info">Satpol PP: 280</h5>
+
+                            <h5 class="fw-bold text-warning">Damkar: 173</h5>
+
+                        </div>
+
+                        <p class="mb-0 small text-muted">Total: 453 Aduan</p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+        </div>
+
+    </div>
+
+    <div id="content">
+
+        <h2 class="mb-4">Dashboard Administrasi</h2>
+
+        
+
+        <div class="row">
+
+            
+
+            <div class="col-md-4">
+
+                
+
+            </div>
+
+
+
+            <div class="col-md-4">
+
+                <div class="card">
+
+                    <div class="card-body">
+
+                        <h5 class="card-title">2. Tren Waktu Laporan</h5>
+
+                        <canvas id="chart-tren" style="height: 250px;"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="col-md-6">
+
+    <div class="card">
+
+        <div class="card-body">
+
+            <h5 class="card-title">3. Breakdown Kategori</h5>
+
+            
+
+            <ul class="nav nav-tabs" id="breakdownTabs" role="tablist">
+
+                <li class="nav-item" role="presentation">
+
+                    <button class="nav-link active" id="pelanggaran-tab" data-bs-toggle="tab" data-bs-target="#pelanggaran-pane" type="button" role="tab" aria-controls="pelanggaran-pane" aria-selected="true">Jenis Pelanggaran</button>
+
+                </li>
+
+                <li class="nav-item" role="presentation">
+
+                    <button class="nav-link" id="perda-tab" data-bs-toggle="tab" data-bs-target="#perda-pane" type="button" role="tab" aria-controls="perda-pane" aria-selected="false">Perda Teratas</button>
+
+                </li>
+
+            </ul>
+
+
+
+            <div class="tab-content pt-3" id="breakdownTabsContent">
+
+                <div class="tab-pane fade show active" id="pelanggaran-pane" role="tabpanel" aria-labelledby="pelanggaran-tab" tabindex="0">
+
+                    <canvas id="chart-pelanggaran" style="height: 220px;"></canvas>
+
+                </div>
+
+                <div class="tab-pane fade" id="perda-pane" role="tabpanel" aria-labelledby="perda-tab" tabindex="0">
+
+                    <canvas id="chart-perda" style="height: 220px;"></canvas>
+
+                </div>
+
+            </div>
+
+
+
+        </div>
+
+    </div>
+
+</div>
+
+            
+
+        </div>
+
+
+
+        <div class="row">
+
+
+
+            <div class="col-md-6">
+
+                <div class="card">
+
+                    <div class="card-body">
+
+                        <h5 class="card-title">4. Peta Rawan Gangguan</h5>
+
+                        <div id="map-rawan" style="height: 350px; background-color: #f1f1f1; display: flex; align-items: center; justify-content: center;">
+
+                            [Area Peta Interaktif]
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="col-md-4">
+
+    <div class="card">
+
+        <div class="card-body">
+
+            <h5 class="card-title">5. Kinerja TRC</h5>
+
+            
+
+            <select id="filter-kinerja-urusan" class="form-select form-select-sm mb-3">
+
+                <option value="all" selected>Semua Urusan</option>
+
+                <option value="satpolpp">Satpol PP</option>
+
+                <option value="damkar">Damkar</option>
+
+            </select>
+
+            
+
+            <p class="small text-muted mb-1">Filter Wilayah: (Dari Sidebar)</p>
+
+
+
+            <canvas id="chart-kinerja-trc" style="height: 300px;"></canvas>
+
+            
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+            <div class="col-md-3">
+
+                <div class="card">
+
+                    <div class="card-body">
+
+                        <h5 class="card-title">6. Tabel Detail Aduan</h5>
+
+                        <div style="max-height: 450px; overflow-y: auto;">
+
+                            <table class="table table-sm table-striped">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>ID</th>
+
+                                        <th>Jenis</th>
+
+                                        <th>Waktu</th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                    <tr><td>TKT-101</td><td>Lalin</td><td>10:00</td></tr>
+
+                                    <tr><td>TKT-102</td><td>Damkar</td><td>09:45</td></tr>
+
+                                    <tr><td>TKT-103</td><td>Satpol</td><td>09:30</td></tr>
+
+                                    </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+        </div> </div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    
+
+    <script>
+
+        // Inisialisasi Grafik menggunakan Chart.js
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+
+
+            // --- 2. Chart Tren Waktu (Line Chart Bulanan) ---
+
+const ctxTren = document.getElementById('chart-tren').getContext('2d');
+
+new Chart(ctxTren, {
+
+    type: 'line',
+
+    data: {
+
+        // Label ini mewakili hari/tanggal dalam periode terpilih
+
+        labels: ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10'], 
+
+        datasets: [
+
+            {
+
+                label: 'Satpol PP (Aduan)',
+
+                data: [15, 12, 18, 10, 20, 14, 16, 11, 19, 13],
+
+                borderColor: '#0d6efd', // Biru
+
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+
+                tension: 0.3,
+
+                fill: true,
+
+                // Data kustom untuk Tooltip: Waktu Respons Rata-rata (menit)
+
+                // Harus memiliki panjang yang sama dengan data utama
+
+                customData: [15, 12, 18, 20, 10, 14, 16, 11, 19, 13] 
+
+            },
+
+            {
+
+                label: 'Damkar (Aduan)',
+
+                data: [5, 8, 3, 7, 2, 6, 9, 4, 1, 10],
+
+                borderColor: '#dc3545', // Merah
+
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+
+                tension: 0.3,
+
+                fill: true,
+
+                // Data kustom untuk Tooltip: Waktu Respons Rata-rata (menit)
+
+                customData: [8, 10, 15, 12, 9, 11, 13, 16, 14, 17]
+
+            }
+
+        ]
+
+    },
+
+    options: {
+
+        responsive: true,
+
+        interaction: {
+
+            mode: 'index',
+
+            intersect: false,
+
+        },
+
+        plugins: {
+
+            tooltip: {
+
+                // Konfigurasi Tooltip Kustom
+
+                callbacks: {
+
+                    title: function(context) {
+
+                        return 'Tanggal: ' + context[0].label;
+
+                    },
+
+                    label: function(context) {
+
+                        const dataset = context.dataset;
+
+                        const aduan = dataset.data[context.dataIndex];
+
+                        const respons = dataset.customData[context.dataIndex];
+
+                        
+
+                        let label = dataset.label || '';
+
+                        if (label) {
+
+                            label += ': ' + aduan + ' Aduan';
+
+                        }
+
+                        return label;
+
+                    },
+
+                    afterLabel: function(context) {
+
+                        const dataset = context.dataset;
+
+                        const respons = dataset.customData[context.dataIndex];
+
+                        return 'Avg. Respons: ' + respons + ' Menit';
+
+                    }
+
+                }
+
+            }
+
+        },
+
+        scales: {
+
+            y: {
+
+                beginAtZero: true,
+
+                title: {
+
+                    display: true,
+
+                    text: 'Jumlah Aduan Harian'
+
+                }
+
+            }
+
+        }
+
+    }
+
+});
+
+
+
+           // --- Chart 3a: Jenis Pelanggaran Teratas (Bar Chart) ---
+
+const ctxPelanggaran = document.getElementById('chart-pelanggaran').getContext('2d');
+
+const chartPelanggaran = new Chart(ctxPelanggaran, {
+
+    type: 'bar',
+
+    data: {
+
+        labels: ['PKL', 'Lalin', 'Sampah', 'Izin Bangunan', 'Hiburan Malam'],
+
+        datasets: [{
+
+            label: 'Jumlah Aduan',
+
+            data: [110, 85, 60, 45, 30],
+
+            backgroundColor: '#ffc107', // Kuning
+
+        }]
+
+    },
+
+    options: {
+
+        responsive: true,
+
+        onClick: (evt, element) => {
+
+            // Logika Klik untuk Filter
+
+            if (element.length > 0) {
+
+                const index = element[0].index;
+
+                const label = chartPelanggaran.data.labels[index];
+
+                alert(`Memfilter: Jenis Pelanggaran = ${label}. (Akan memfilter Peta & Tren)`);
+
+                // Di sini Anda akan menjalankan fungsi filter() pada data dashboard
+
+            }
+
+        },
+
+        indexAxis: 'y', // Membuat Bar Chart Horizontal
+
+        scales: {
+
+            x: {
+
+                beginAtZero: true
+
+            }
+
+        }
+
+    }
+
+});
+
+
+
+
+
+// --- Chart 3b: Perda Teratas (Bar Chart) ---
+
+const ctxPerda = document.getElementById('chart-perda').getContext('2d');
+
+const chartPerda = new Chart(ctxPerda, {
+
+    type: 'bar',
+
+    data: {
+
+        labels: ['No. 7/2014 (Ketertiban Umum)', 'No. 3/2012 (Sampah)', 'No. 11/2018 (Bangunan)'],
+
+        datasets: [{
+
+            label: 'Jumlah Kasus',
+
+            data: [150, 100, 75],
+
+            backgroundColor: '#198754', // Hijau
+
+        }]
+
+    },
+
+    options: {
+
+        responsive: true,
+
+        onClick: (evt, element) => {
+
+            // Logika Klik untuk Filter
+
+            if (element.length > 0) {
+
+                const index = element[0].index;
+
+                const label = chartPerda.data.labels[index];
+
+                alert(`Memfilter: Perda = ${label}. (Akan memfilter Peta & Tren)`);
+
+                // Di sini Anda akan menjalankan fungsi filter() pada data dashboard
+
+            }
+
+        },
+
+        indexAxis: 'y', // Membuat Bar Chart Horizontal
+
+        scales: {
+
+            x: {
+
+                beginAtZero: true
+
+            }
+
+        }
+
+    }
+
+});
+
+            
+
+             // --- Data Kinerja Response Time Rata-Rata (dalam Menit) ---
+
+const dataResponseTime = {
+
+    all: [15, 12, 18, 10, 14], // Data rata-rata gabungan
+
+    satpolpp: [14, 11, 17, 12, 13], // Data khusus Satpol PP
+
+    damkar: [16, 13, 19, 8, 15] // Data khusus Damkar
+
+};
+
+const labelsTRC = ['TRC.1', 'TRC.2', 'TRC.3', 'TRC.4', 'TRC.5'];
+
+
+
+// --- Chart 5: Kinerja TRC ---
+
+const ctxKinerjaTRC = document.getElementById('chart-kinerja-trc').getContext('2d');
+
+const chartKinerjaTRC = new Chart(ctxKinerjaTRC, {
+
+    type: 'bar', // Bar Chart
+
+    data: {
+
+        labels: labelsTRC,
+
+        datasets: [{
+
+            label: 'Rata-rata Waktu Respons (Menit)',
+
+            data: dataResponseTime.all,
+
+            backgroundColor: ['#28a745', '#17a2b8', '#ffc107', '#dc3545', '#007bff'], // Warna per bar
+
+        }]
+
+    },
+
+    options: {
+
+        responsive: true,
+
+        indexAxis: 'y', // Bar Chart Horizontal
+
+        plugins: {
+
+            legend: {
+
+                display: false
+
+            },
+
+            tooltip: {
+
+                callbacks: {
+
+                    label: function(context) {
+
+                        return `Respons: ${context.parsed.x} Menit`;
+
+                    }
+
+                }
+
+            }
+
+        },
+
+        scales: {
+
+            x: {
+
+                beginAtZero: true,
+
+                title: {
+
+                    display: true,
+
+                    text: 'Waktu Respons (Menit)'
+
+                }
+
+            }
+
+        }
+
+    }
+
+});
+
+
+
+
+
+// --- Fungsi Filter untuk Kinerja TRC ---
+
+function updateKinerjaTRC(urusan) {
+
+    // Memperbarui data chart berdasarkan urusan yang dipilih
+
+    chartKinerjaTRC.data.datasets[0].data = dataResponseTime[urusan];
+
+    
+
+    // Opsional: Ganti warna berdasarkan urusan
+
+    const colorMap = {
+
+        'all': '#007bff', 
+
+        'satpolpp': '#28a745', 
+
+        'damkar': '#dc3545'
+
+    };
+
+    chartKinerjaTRC.data.datasets[0].backgroundColor = colorMap[urusan]; 
+
+    
+
+    chartKinerjaTRC.update();
+
+}
+
+
+
+// --- Event Listener untuk Filter Urusan ---
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    // ... (Pastikan kode Chart.js lainnya ada di sini) ...
+
+
+
+    const filterKinerjaUrusan = document.getElementById('filter-kinerja-urusan');
+
+    filterKinerjaUrusan.addEventListener('change', function() {
+
+        updateKinerjaTRC(this.value);
+
+    });
+
+
+
+    // Catatan: Filter per wilayah akan membutuhkan logika yang lebih kompleks
+
+    // di mana Anda harus memanggil API atau memuat data yang difilter 
+
+    // berdasarkan nilai input dari sidebar (filter-lokasi).
+
+});
+
+        });
+
+    </script>
+
+</body>
+
+</html>
